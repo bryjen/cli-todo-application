@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <AssemblyName>todos</AssemblyName>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <ApplicationIcon>assets/icon.ico</ApplicationIcon>
+    </PropertyGroup>
+    
+    
+    <ItemGroup>
+        <PackageReference Include="Spectre.Console" Version="0.48.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Individual utilitiy files. Generally, each are independent of each other. -->
+        <Compile Include="Utilities\Serialization.fsi" />
+        <Compile Include="Utilities\Serialization.fs" />
+        <Compile Include="Utilities\Console.fs" />
+        <Compile Include="Utilities\Attributes.fs" />
+
+        <!-- Individual action files. -->
+        <Compile Include="Modules\TodoList.fs" />
+
+        <!-- Files containing saving/loading modules. -->
+        <Compile Include="Modules\Data\JsonData.fs" />
+        <Compile Include="Modules\Data\FunctionMapper.fs" />
+
+        <!-- Files containing modules that contain functions that execute user actions. -->
+        <Compile Include="Modules\TodoList.Interface.fs" />
+
+        <!-- Program entrypoint. -->
+        <Compile Include="Program.fs" />
+    </ItemGroup>
+
+</Project>

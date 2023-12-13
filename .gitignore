@@ -1,0 +1,8 @@
+﻿.git
+.idea
+
+src/Todo/bin
+src/Todo/obj
+
+tests/Todo.Tests/bin
+tests/Todo.Tests/obj
