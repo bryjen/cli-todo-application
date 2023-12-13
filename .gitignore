@@ -6,3 +6,5 @@ src/Todo/obj
 
 tests/Todo.Tests/bin
 tests/Todo.Tests/obj
+
+todo-application.sln.DotSettings.user
