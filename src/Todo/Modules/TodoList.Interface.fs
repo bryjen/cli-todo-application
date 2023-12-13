@@ -23,8 +23,8 @@ let printAllTodoGroups (todoGroups: TodoGroup list) (_: string array): TodoGroup
     |> List.map (fun todoGroup -> printfn $"%s{TodoGroup.toString todoGroup}")
     |> ignore
     
-    pressEnterToContinue ()
-    clearConsole ()
+    Console.pressEnterToContinue ()
+    Console.clearConsole ()
     todoGroups
     
 /// <summary>
@@ -38,26 +38,26 @@ let createTodoGroup (todoGroups: TodoGroup list) (argv: string array) : TodoGrou
         | first :: second :: _ ->
             (first, second)
         | first :: _ ->
-            let description = AnsiConsole.Ask<string>("Please enter a short [green underline]description[/] for the todo group:")
+            let description = Console.ask<string>("Please enter a short [green underline]description[/] for the todo group:")
             (first, description)
         | _ ->
-            let name = AnsiConsole.Ask<string>("Please enter a [green underline]name[/] for the todo group name:")
-            let description = AnsiConsole.Ask<string>("Please enter a short [green underline]description[/] for the todo group:")
+            let name = Console.ask<string>("Please enter a [green underline]name[/] for the todo group name:")
+            let description = Console.ask<string>("Please enter a short [green underline]description[/] for the todo group:")
             (name, description)
         
     let creationResult = TodoGroup.tryCreateTodoGroup todoGroups (fst information) (snd information) 
     
     match creationResult with
     | None ->
-        AnsiConsole.MarkupLine("\n\n[red]A todo group already exists with the same name![/]\n\n")
-        pressEnterToContinue ()
-        clearConsole ()
+        Console.printError "\n\nA todo group already exists with the same name!\n\n"
+        Console.pressEnterToContinue ()
+        Console.clearConsole ()
         todoGroups
     | Some value ->
         let newTodoGroup = value :: todoGroups
-        AnsiConsole.MarkupLine($"\n\n[green]Course group \"{(fst information)}\" successfully created![/]\n\n")
-        pressEnterToContinue ()
-        clearConsole ()
+        Console.printSuccess $"\n\nCourse group \"{(fst information)}\" successfully created!\n\n"
+        Console.pressEnterToContinue ()
+        Console.clearConsole ()
         newTodoGroup
 
 /// <summary>
@@ -78,14 +78,14 @@ let deleteTodoGroup (todoGroups: TodoGroup list) (argv: string array) : TodoGrou
     
     match (List.length todoGroups) - (List.length newTodoGroupList) with
     | 0 ->
-        AnsiConsole.MarkupLine($"[red]Could not find todo group with the name \'{name}\'[/]")
-        pressEnterToContinue ()
-        clearConsole ()
+        Console.printError $"Could not find todo group with the name \'{name}\'"
+        Console.pressEnterToContinue ()
+        Console.clearConsole ()
         todoGroups
     | _ ->
-        AnsiConsole.MarkupLine($"\n\n[green]Course group \"{name}\" successfully created![/]\n\n")
-        pressEnterToContinue ()
-        clearConsole ()
+        Console.printSuccess $"\n\nCourse group \"{name}\" successfully created!\n\n"
+        Console.pressEnterToContinue ()
+        Console.clearConsole ()
         newTodoGroupList
     
 
@@ -98,11 +98,10 @@ let rec execute (argv: string array) (todoGroups: TodoGroup list) : unit =
     
     let actionMap = FunctionMapper.createModuleActionMap "list"
     let quitAction = " . Quit"
-    let actions = quitAction :: (List.map fst (Map.toList actionMap)) 
     
+    let choices = quitAction :: (List.map fst (Map.toList actionMap)) 
     let prompt = "Select what action you would like to perform:"
-    let selectionPrompt = SelectionPrompt<string>(Title = prompt).AddChoices(actions)
-    let selectedAction = AnsiConsole.Prompt(selectionPrompt)
+    let selectedAction = Console.promptUser<string> (PromptOptions.DefaultSelectionPrompt (choices, prompt)) 
     
     match selectedAction with
     | value when value = quitAction ->

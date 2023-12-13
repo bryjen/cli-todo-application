@@ -6,6 +6,37 @@ open System
 open Microsoft.FSharp.Core
 
 /// <summary>
+/// 
+/// </summary>
+[<AttributeUsage(AttributeTargets.Field, AllowMultiple = false)>]
+type DefaultValueOfAttribute(recordType: Type) =
+    inherit Attribute()
+   
+    // The record type of the default value 
+    member val Type: Type = recordType
+
+
+[<AttributeUsage(AttributeTargets.Module, AllowMultiple = false)>]
+type ActionModuleAttribute(moduleName: string) =
+    inherit Attribute()
+   
+    /// The name of the module.  
+    member val Name = moduleName
+
+
+[<AttributeUsage(AttributeTargets.Method, AllowMultiple = false)>]
+type ActionFunctionAttribute(action: string, prompt: string) =
+    inherit Attribute()
+    
+    /// The name of the action being performed.
+    member val Action = action
+    
+    /// The prompt that is displayed to the user. 
+    member val Prompt = prompt
+
+
+
+/// <summary>
 /// <para>
 /// An attribute that is meant to be used on functions that represent a specific action that a user can take. Contains
 /// properties to separate code between modules. This allows action functions to be dynamically obtained and mapped

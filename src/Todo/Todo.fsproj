@@ -16,9 +16,10 @@
         <!-- Individual utilitiy files. Generally, each are independent of each other. -->
         <Compile Include="Utilities\Serialization.fsi" />
         <Compile Include="Utilities\Serialization.fs" />
-        <Compile Include="Utilities\Console.fs" />
         <Compile Include="Utilities\Attributes.fs" />
 
+        <Compile Include="Utilities\Console.fs" />
+        
         <!-- Individual action files. -->
         <Compile Include="Modules\TodoList.fs" />
 
