@@ -11,6 +11,8 @@
     <ItemGroup>
         <Compile Include="Utilities\SerializationTests.fs" />
         <Compile Include="Modules\Data\FunctionMapperTests.fs" />
+        <Compile Include="Core\Utilities\ExceptionsTests.fs" />
+        <Compile Include="Core\ActionTreeBuilderTests.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 

@@ -3,7 +3,7 @@
 /// Contains functions that manipulate the console to provided formatted output, interactive prompts, etc.
 /// Extensively uses the library 'spectreconsole' (https://github.com/spectreconsole/spectre.console).
 
-module Todo.Utilities.Console
+module Todo.Core.Console
 
 open System
 open System.Globalization
@@ -11,8 +11,7 @@ open Microsoft.FSharp.Core
 
 open Spectre.Console
 
-open Todo.Utilities.Attributes
-
+open Todo.Core.Utilities.Attributes
 
 /// Unboxes an optional reference type. Returns null or actual value.
 /// todo re-write into extensions module whenever possible
@@ -20,7 +19,6 @@ let private unboxNullable<'T when 'T : null> (option: 'T option) =
     match option with
     | None -> null 
     | Some value -> value
-
 
 /// <summary>
 /// Utility module containing wrapper types and functions for interoping with <c>Spectre.Console.SelectionPrompt</c>

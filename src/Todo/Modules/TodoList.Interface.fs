@@ -5,18 +5,20 @@
 
 module Todo.Modules.TodoList_Interface
 
+open System
 open Microsoft.FSharp.Collections
 open Microsoft.FSharp.Core
 open Spectre.Console
 
 open Todo.Modules.Data
-open Todo.Utilities.Attributes
-open Todo.Utilities.Console
+open Todo.Core.Utilities.Attributes
+open Todo.Core.Console
 open Todo.Modules.TodoList
 
 /// <summary>
 /// Action method for displaying all tοdo groups.
 /// </summary>
+[<Obsolete("Old prototype system that uses hard-coding. Use new attribute-based system instead.")>]
 [<ActionSignature("list", "printAllTodoGroups", "1. View all todo groups")>]
 let printAllTodoGroups (todoGroups: TodoGroup list) (_: string array): TodoGroup list =
     todoGroups
@@ -30,6 +32,7 @@ let printAllTodoGroups (todoGroups: TodoGroup list) (_: string array): TodoGroup
 /// <summary>
 /// Action method for creating a new tοdo group.
 /// </summary>
+[<Obsolete("Old prototype system that uses hard-coding. Use new attribute-based system instead.")>]
 [<ActionSignature("list", "createTodoGroup", "2. Create todo group")>]
 let createTodoGroup (todoGroups: TodoGroup list) (argv: string array) : TodoGroup list =
     
@@ -63,6 +66,7 @@ let createTodoGroup (todoGroups: TodoGroup list) (argv: string array) : TodoGrou
 /// <summary>
 /// Action method for deleting a tοdo group.
 /// </summary>
+[<Obsolete("Old prototype system that uses hard-coding. Use new attribute-based system instead.")>]
 [<ActionSignature("list", "deleteTodoGroup", "3. Delete a todo group")>]
 let deleteTodoGroup (todoGroups: TodoGroup list) (argv: string array) : TodoGroup list =
     
@@ -94,6 +98,7 @@ let deleteTodoGroup (todoGroups: TodoGroup list) (argv: string array) : TodoGrou
 /// <summary>
 /// Function that takes in user input and determines what action function to execute.
 /// </summary>
+[<Obsolete("Old prototype system that uses hard-coding. Use new attribute-based system instead.")>]
 let rec execute (argv: string array) (todoGroups: TodoGroup list) : unit =
     
     let actionMap = FunctionMapper.createModuleActionMap "list"

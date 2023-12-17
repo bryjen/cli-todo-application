@@ -2,16 +2,13 @@
 
 open Microsoft.FSharp.Collections
 
+open Todo.Core.Utilities.Exceptions.ActionTree
 open Todo.Modules
 open Todo.Modules.Data.JsonData
 
 
 [<EntryPoint>]
 let main argv =
-    
-#if Debug
-    printfn $"%A{argv}"
-#endif
 
     //  Load data
     let loadResults = loadTodoGroups todoGroupsFilePath

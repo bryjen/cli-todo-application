@@ -1,38 +1,55 @@
 ﻿/// Attributes.fs
 
-module Todo.Utilities.Attributes
+module Todo.Core.Utilities.Attributes
 
 open System
 open Microsoft.FSharp.Core
 
-/// <summary>
-/// 
-/// </summary>
+module ActionTree =
+    /// <summary>
+    /// Specifies that a module is an action module.
+    /// </summary>
+    [<AttributeUsage(AttributeTargets.Class, AllowMultiple = false)>]
+    type ActionModuleAttribute(moduleName: string) =
+        inherit Attribute()
+       
+        /// The name of the action module.  
+        member val ModuleName: string = moduleName with get
+   
+    /// <summary>
+    /// Specifies that an action module is meant to only have one and only one action function. 
+    /// </summary>
+    [<AttributeUsage(AttributeTargets.Class, AllowMultiple = false)>]
+    type SingleActionAttribute() =
+        inherit Attribute() 
+        
+    /// <summary>
+    /// Specifies that a function is an action function.
+    /// </summary>
+    [<AttributeUsage(AttributeTargets.Method, AllowMultiple = false)>]
+    type ActionFunctionAttribute(name: string, prompt: string) =
+        inherit Attribute()
+        
+        /// The name of the action being performed.
+        member val Name: string = name with get 
+        
+        /// The prompt that is displayed to the user. 
+        member val Prompt: string = prompt with get
+        
+    /// <summary>
+    /// Specifies that a function is meant to act as the "default function" of the action module.
+    /// </summary>
+    [<AttributeUsage(AttributeTargets.Method, AllowMultiple = false)>]
+    type DefaultActionFunctionAttribute() =
+        inherit Attribute()
+        
+    
 [<AttributeUsage(AttributeTargets.Field, AllowMultiple = false)>]
 type DefaultValueOfAttribute(recordType: Type) =
     inherit Attribute()
    
     // The record type of the default value 
     member val Type: Type = recordType
-
-
-[<AttributeUsage(AttributeTargets.Module, AllowMultiple = false)>]
-type ActionModuleAttribute(moduleName: string) =
-    inherit Attribute()
-   
-    /// The name of the module.  
-    member val Name = moduleName
-
-
-[<AttributeUsage(AttributeTargets.Method, AllowMultiple = false)>]
-type ActionFunctionAttribute(action: string, prompt: string) =
-    inherit Attribute()
-    
-    /// The name of the action being performed.
-    member val Action = action
-    
-    /// The prompt that is displayed to the user. 
-    member val Prompt = prompt
 
 
 
@@ -50,6 +67,7 @@ type ActionFunctionAttribute(action: string, prompt: string) =
 /// <remarks>
 /// These functions are not usually <b>not pure</b> as most of these functions have code that take user input.
 /// </remarks>
+[<Obsolete>]
 [<Sealed>]
 [<AttributeUsage(AttributeTargets.Method, AllowMultiple = false)>]
 type ActionSignatureAttribute(_module: string, action: string, prompt: string) =

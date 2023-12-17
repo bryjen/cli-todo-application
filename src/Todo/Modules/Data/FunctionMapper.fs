@@ -7,7 +7,7 @@ module Todo.Modules.Data.FunctionMapper
 
 open System
 open System.Reflection
-open Todo.Utilities.Attributes
+open Todo.Core.Utilities.Attributes
 
 /// <summary>
 /// Returns all functions with the <c>ActionSignatureAttribute</c> attribute. 

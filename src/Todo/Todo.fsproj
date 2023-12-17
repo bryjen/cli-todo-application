@@ -14,11 +14,16 @@
 
     <ItemGroup>
         <!-- Individual utilitiy files. Generally, each are independent of each other. -->
+        <Compile Include="AssemblyInfo.fs" />
+        
         <Compile Include="Utilities\Serialization.fsi" />
         <Compile Include="Utilities\Serialization.fs" />
-        <Compile Include="Utilities\Attributes.fs" />
 
-        <Compile Include="Utilities\Console.fs" />
+        <Compile Include="Core\Utilities\Attributes.fs" />
+        <Compile Include="Core\Utilities\Exceptions.fs" />
+
+        <Compile Include="Core\Console.fs" />
+        <Compile Include="Core\ActionTreeBuilder.fs" />
         
         <!-- Individual action files. -->
         <Compile Include="Modules\TodoList.fs" />
@@ -29,6 +34,8 @@
 
         <!-- Files containing modules that contain functions that execute user actions. -->
         <Compile Include="Modules\TodoList.Interface.fs" />
+        <Compile Include="Modules\List.fs" />
+        <Compile Include="Modules\Help.fs" />
 
         <!-- Program entrypoint. -->
         <Compile Include="Program.fs" />
