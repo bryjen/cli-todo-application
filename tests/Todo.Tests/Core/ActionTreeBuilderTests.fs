@@ -13,5 +13,5 @@ type ActionTreeBuilderTests() =
             TreeBuilding.printActionTree actionTree
             Assert.Pass()
         | Error actionTreeException ->
-            Assert.Fail()
+            printfn $"%s{actionTreeException.StackTrace}"
             raise actionTreeException

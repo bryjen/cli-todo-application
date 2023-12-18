@@ -15,7 +15,23 @@ module ActionTree =
        
         /// The name of the action module.  
         member val ModuleName: string = moduleName with get
-   
+  
+    /// <summary>
+    /// Specifies that a module is the <b>default</b> action module. The function marked with the
+    /// <c>DefaultActionFunction</c> attribute is called when no input is passed in by the user.
+    /// </summary>
+    /// <remarks>
+    /// <ol>
+    /// <li>
+    /// A module marked with this attribute <b>HAS</b> to have exactly one function that is marked with the
+    /// <c>DefaultActionFunction</c> attribute.
+    /// </li>
+    /// </ol> 
+    /// </remarks>
+    [<AttributeUsage(AttributeTargets.Class, AllowMultiple = false)>]
+    type internal DefaultActionModuleAttribute() =
+        inherit Attribute()
+    
     /// <summary>
     /// Specifies that an action module is meant to only have one and only one action function. 
     /// </summary>

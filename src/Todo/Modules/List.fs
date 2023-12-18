@@ -5,6 +5,11 @@ open Todo.Core.Utilities.Attributes.ActionTree
 [<ActionModule("list")>]
 module ListMenu =
     
+    [<DefaultActionFunction>]
+    [<ActionFunction("", "")>]
+    let interactive (argv: string array) =
+        ()
+    
     [<ActionFunction("create", "Create a new todo")>]
     let create (argv: string array) =
         ()

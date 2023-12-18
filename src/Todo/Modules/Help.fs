@@ -6,7 +6,7 @@ open Todo.Core.Utilities.Attributes.ActionTree
 module Help =
     
     [<DefaultActionFunction>]
-    [<ActionFunction("INTERACTIVE", "")>]
+    [<ActionFunction("", "")>]
     let interactive (argv: string array) =
         ()
         

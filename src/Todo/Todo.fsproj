@@ -23,6 +23,9 @@
         <Compile Include="Core\Utilities\Exceptions.fs" />
 
         <Compile Include="Core\Console.fs" />
+        <Compile Include="Core\ActionTree.fsi" />
+        <Compile Include="Core\ActionTree.fs" />
+        <Compile Include="Core\ActionTreeBuilder.fsi" />
         <Compile Include="Core\ActionTreeBuilder.fs" />
         
         <!-- Individual action files. -->
@@ -36,6 +39,7 @@
         <Compile Include="Modules\TodoList.Interface.fs" />
         <Compile Include="Modules\List.fs" />
         <Compile Include="Modules\Help.fs" />
+        <Compile Include="Modules\DefaultEntry.fs" />
 
         <!-- Program entrypoint. -->
         <Compile Include="Program.fs" />

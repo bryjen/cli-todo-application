@@ -87,3 +87,14 @@ module ActionTree =
         static member formatMessage (moduleName: string) : string =
             sprintf $"The action module \"$%s{moduleName}\" has multiple functions marked with the \"DefaultAction\" attribute."
             + "No function or exactly one function can be marked with this attribute."
+            
+    /// <summary>
+    /// An exception that is thrown when the action tree builder detects that there is some exception with the default
+    /// action module.
+    /// </summary>
+    type InvalidDefaultActionModuleException() =
+        inherit ActionTreeException(InvalidDefaultActionModuleException.errorMessage)
+        static member errorMessage : string =
+            "\n\nThere is an invalid definition of a default action module. Make sure that: " +
+            "\n - There is only one module that is marked with with the \"DefaultActionFunction\" attribute" +
+            "\n - The module has EXACTLY one function that is marked with both \"DefaultActionFunction\" and \"ActionFunction\" attributes.\n"
