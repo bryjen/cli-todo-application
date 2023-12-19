@@ -13,6 +13,7 @@
         <Compile Include="Modules\Data\FunctionMapperTests.fs" />
         <Compile Include="Core\Utilities\ExceptionsTests.fs" />
         <Compile Include="Core\ActionTreeBuilderTests.fs" />
+        <Compile Include="Core\ActionTreeTests.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 

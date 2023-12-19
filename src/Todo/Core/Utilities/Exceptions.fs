@@ -98,3 +98,14 @@ module ActionTree =
             "\n\nThere is an invalid definition of a default action module. Make sure that: " +
             "\n - There is only one module that is marked with with the \"DefaultActionFunction\" attribute" +
             "\n - The module has EXACTLY one function that is marked with both \"DefaultActionFunction\" and \"ActionFunction\" attributes.\n"
+            
+    /// <summary>
+    /// An exception that is thrown when the user enters an invalid action.
+    /// </summary>
+    type InvalidActionException(argv: string array) =
+        inherit ActionTreeException(InvalidActionException.formatMessage argv)
+        
+        member val argv: string array = argv with get
+        
+        static member formatMessage (argv: string array) : string =
+            sprintf $"Invalid actions: %A{argv}"
