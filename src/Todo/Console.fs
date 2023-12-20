@@ -3,7 +3,7 @@
 /// Contains functions that manipulate the console to provided formatted output, interactive prompts, etc.
 /// Extensively uses the library 'spectreconsole' (https://github.com/spectreconsole/spectre.console).
 
-module Todo.Core.Console
+module Todo.Console
 
 open System
 open System.Globalization
@@ -11,7 +11,7 @@ open Microsoft.FSharp.Core
 
 open Spectre.Console
 
-open Todo.Core.Utilities.Attributes
+open Todo.Attributes
 
 /// Unboxes an optional reference type. Returns null or actual value.
 /// todo re-write into extensions module whenever possible

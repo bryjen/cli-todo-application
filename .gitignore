@@ -1,10 +1,18 @@
-﻿.git
-.idea
+﻿# JetBrains Rider
+.idea/
+*.sln.iml
+.git
 
+# /src
 src/Todo/bin
 src/Todo/obj
+src/Todo.Cli/bin
+src/Todo.Cli/obj
 
+# /tests
 tests/Todo.Tests/bin
 tests/Todo.Tests/obj
+tests/Todo.Cli.Tests/bin
+tests/Todo.Cli.Tests/obj
 
 todo-application.sln.DotSettings.user

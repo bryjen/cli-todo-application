@@ -1,17 +1,19 @@
-﻿module Todo.Modules.List
+﻿namespace Todo.Cli.Modules
 
-open Todo.Core.Utilities.Attributes.ActionTree
+open Todo.Attributes.ActionTree
 
 [<ActionModule("list")>]
-module ListMenu =
+module List =
     
     [<DefaultActionFunction>]
     [<ActionFunction("", "")>]
-    let interactive (argv: string array) =
+    let interactive
+        (argv: string array)
+        : unit =
         ()
-    
+
     [<ActionFunction("create", "Create a new todo")>]
-    let create (argv: string array) =
+    let create  (argv: string array) =
         ()
         
     [<ActionFunction("delete", "Delete a new todo")>]

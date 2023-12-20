@@ -1,49 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <AssemblyName>todos</AssemblyName>
-        <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
-        <ApplicationIcon>assets/icon.ico</ApplicationIcon>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
-    
-    
+
     <ItemGroup>
-        <PackageReference Include="FsToolkit.ErrorHandling" Version="4.13.0" />
-        <PackageReference Include="Spectre.Console" Version="0.48.0" />
+        <Compile Include="Attributes.fs" />
+        <Compile Include="Exceptions.fs" />
+        <Compile Include="Console.fs" />
+
+        <!-- Action Tree -->
+        <Compile Include="ActionTree\Types.fs" />
+        <Compile Include="ActionTree\AttributeFinder.fs" />
+        <Compile Include="ActionTree\Validation.fs" />
+        <Compile Include="ActionTree\Builder.fs" />
+        <Compile Include="ActionTree\ActionTree.fs" />
+        
     </ItemGroup>
 
     <ItemGroup>
-        <!-- Individual utilitiy files. Generally, each are independent of each other. -->
-        <Compile Include="AssemblyInfo.fs" />
-        
-        <Compile Include="Utilities\Serialization.fsi" />
-        <Compile Include="Utilities\Serialization.fs" />
-
-        <Compile Include="Core\Utilities\Attributes.fs" />
-        <Compile Include="Core\Utilities\Exceptions.fs" />
-
-        <Compile Include="Core\Console.fs" />
-        <Compile Include="Core\ActionTree.fsi" />
-        <Compile Include="Core\ActionTree.fs" />
-        <Compile Include="Core\ActionTreeBuilder.fsi" />
-        <Compile Include="Core\ActionTreeBuilder.fs" />
-        
-        <!-- Individual action files. -->
-        <Compile Include="Modules\TodoList.fs" />
-
-        <!-- Files containing saving/loading modules. -->
-        <Compile Include="Modules\Data\JsonData.fs" />
-        <Compile Include="Modules\Data\FunctionMapper.fs" />
-
-        <!-- Files containing modules that contain functions that execute user actions. -->
-        <Compile Include="Modules\TodoList.Interface.fs" />
-        <Compile Include="Modules\List.fs" />
-        <Compile Include="Modules\Help.fs" />
-        <Compile Include="Modules\DefaultEntry.fs" />
-
-        <!-- Program entrypoint. -->
-        <Compile Include="Program.fs" />
+      <PackageReference Include="FsToolkit.ErrorHandling" Version="4.13.0" />
+      <PackageReference Include="Spectre.Console" Version="0.48.0" />
     </ItemGroup>
 
 </Project>

@@ -1,27 +1,30 @@
-﻿namespace Todo.Core.ActionTree
+﻿// ActionTree.fs
+//
+// Contains functionality mainly for interacting with the action tree.
+
+namespace Todo.ActionTree
 
 open System.Reflection
 
-open Todo.Core.Utilities.Exceptions.ActionTree
+open Todo.Exceptions.ActionTree
 
-/// <summary>
-/// Implementation of the tree that represents the path of action the user can take.
-/// </summary>
-type ActionTree =
-    | InternalNode of string * MethodInfo option * ActionTree list 
-    | Action of string * MethodInfo
-    
+
 module ActionTreeFunctions =
     
     // Given an action tree, get the name/string at the root node.
-    let private getName actionTree =
+    let private getName
+        (actionTree: ActionTree)
+        : string =
         match actionTree with
         | InternalNode(string, _, _) -> string
         | Action(string, _) -> string
         
     //  Gets the sub action trees (branches)
     //  YOU MUST PASS IN AN INTERNAL NODE
-    let private getNextActionTreeByString actionTree branchName =
+    let private getNextActionTreeByString
+        (actionTree: ActionTree)
+        (branchName: string)
+        : ActionTree list =
         match actionTree with
         | InternalNode(_, _, branches) ->
             branches
@@ -32,8 +35,19 @@ module ActionTreeFunctions =
         | Action _ ->
             failwith "You must pass in an 'ActionTree.InternalNode'!"
         
+    /// <summary>
+    /// Builds the action tree.
+    /// </summary>
+    let buildActionTree
+        ()
+        : Result<ActionTree, ActionTreeException> =
+        Builder.buildActionTree ()
     
-    let getAllInternalNodeData actionTree =
+    /// <summary>
+    /// Gets a list of all the internal node data. 
+    /// </summary>
+    let getAllInternalNodeData
+        (actionTree: ActionTree) =
         
         let rec getInternalNodes actionTree =
             match actionTree with
@@ -44,7 +58,13 @@ module ActionTreeFunctions =
                 
         getInternalNodes actionTree
                 
-    let rec getAction actionTree argv : Result<string * MethodInfo, ActionTreeException> =
+    /// <summary>
+    /// Attempts to traverse through the passed action tree with the given input.
+    /// </summary>
+    let rec getAction
+        (actionTree: ActionTree)
+        (argv: string array)
+        : Result<string * MethodInfo, ActionTreeException> =
         match actionTree with
         | InternalNode(str, methodInfoOption, _) ->
             if (Array.length argv) = 0 && Option.isSome methodInfoOption then
@@ -58,10 +78,33 @@ module ActionTreeFunctions =
                     getAction (List.head nextActionTrees) (Array.tail argv)
                 else
                     Error (InvalidActionException(argv))
-                    
         | Action(str, methodInfo) ->
             if (Array.length argv) = 0 then
                 Ok (str, methodInfo)
             else
                 Error (InvalidActionException(argv))
+                
+    /// <summary>
+    /// Prints a formatted representation of an action tree.
+    /// </summary>
+    let printActionTree
+        (actionTree: ActionTree)
+        : unit =
+    
+        // recursive helper function
+        let rec print actionTree depth : unit =
+            let tabs = String.replicate depth "\t"
             
+            match actionTree with
+            | InternalNode(str, _, actionTrees) ->
+                let functionInformation = $"(FUNC: \"%s{str}\")"
+                printfn $"%s{tabs}{str} {functionInformation}"
+                
+                for branch in actionTrees do
+                    print branch (depth + 1)
+                    
+            | Action(str, _) ->
+                let functionInformation = $"(FUNC: \"%s{str}\")"
+                printfn $"%s{tabs}{str} {functionInformation}"
+            
+        print actionTree 0

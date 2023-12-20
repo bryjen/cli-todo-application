@@ -1,4 +1,6 @@
-﻿module Todo.Core.Utilities.Exceptions
+﻿// Exceptions.fs
+
+namespace Todo.Exceptions
 
 open System
 

@@ -1,6 +1,6 @@
-﻿/// Attributes.fs
+﻿// Attributes.fs
 
-module Todo.Core.Utilities.Attributes
+namespace Todo.Attributes
 
 open System
 open Microsoft.FSharp.Core
@@ -29,7 +29,7 @@ module ActionTree =
     /// </ol> 
     /// </remarks>
     [<AttributeUsage(AttributeTargets.Class, AllowMultiple = false)>]
-    type internal DefaultActionModuleAttribute() =
+    type DefaultActionModuleAttribute() =
         inherit Attribute()
     
     /// <summary>
