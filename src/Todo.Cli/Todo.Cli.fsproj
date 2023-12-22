@@ -7,13 +7,25 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="Modules\List.fs" />
-        <Compile Include="Modules\DefaultEntry.fs" />
+        <Compile Include="Commands\List.fs" />
+        <Compile Include="Commands\Create.fs" />
+        <Compile Include="Config.fs" />
+        <Compile Include="Files.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Todo\Todo.fsproj" />
+        <ProjectReference Include="..\Todo\Todo.fsproj" />
     </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="config.json">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <Target Name="CreateDataDirectory" BeforeTargets="Build">
+        <MakeDir Directories="$(OutputPath)\Datak" />
+    </Target>
 
 </Project>

@@ -6,22 +6,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="Attributes.fs" />
-        <Compile Include="Exceptions.fs" />
-        <Compile Include="Console.fs" />
-
-        <!-- Action Tree -->
-        <Compile Include="ActionTree\Types.fs" />
-        <Compile Include="ActionTree\AttributeFinder.fs" />
-        <Compile Include="ActionTree\Validation.fs" />
-        <Compile Include="ActionTree\Builder.fs" />
-        <Compile Include="ActionTree\ActionTree.fs" />
-        
+      <PackageReference Include="FsToolkit.ErrorHandling" Version="4.13.0" />
+      <PackageReference Include="Spectre.Console" Version="0.48.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="FsToolkit.ErrorHandling" Version="4.13.0" />
-      <PackageReference Include="Spectre.Console" Version="0.48.0" />
+        <Compile Include="Attributes.fs" />
+        <Compile Include="Data.fs" />
+        <Compile Include="Command.fs" />
+        <Folder Include="Utilities\" />
+        <Compile Include="ItemGroup.fs" />
     </ItemGroup>
 
 </Project>
