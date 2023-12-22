@@ -1,7 +1,6 @@
 ﻿namespace Todo
 
-open System.Text
-open Todo
+open Todo.Utilities
 
 type Label =
     { Name: string }
@@ -14,31 +13,42 @@ type ItemGroup =
 and Item =
     { Name: string
       Description: string option
-      DueDate: Utilities.DueDate
+      DueDate: DueDate
       Labels: Label list }
     
 module ItemGroupFunctions =
     
-    let getTabs (num: int) : string =
-        String.replicate num "\t"
+    let getIndentation (num: int) : string =
+        String.replicate num "    "
     
     let itemToString (item: Item) : string =
-        sprintf $"%s{item.Name}"
+        let dueDateFormatted =
+            match item.DueDate with
+            | DateDue dateTime ->  Date.getDaysRemainingAsString dateTime 
+            | WeekDue week -> Week.getWeeksRemainingAsString week 
+            
+        sprintf $"[red]%s{dueDateFormatted}[/] %s{item.Name}"
         
     let itemGroupToString (itemGroup: ItemGroup) : string =
         
         // helper function
-        let rec formatItemGroup (itmGrp: ItemGroup) (depth: int) (stringBuilder: StringBuilder) : string =
-            stringBuilder.Append(sprintf $"%s{getTabs depth}[%s{itmGrp.Name}]\n") |> ignore
-            List.map (fun (item: Item) -> stringBuilder.Append(sprintf $"%s{getTabs (depth + 1)}%s{itemToString item}\n")) |> ignore
+        let rec formatItemGroup (itmGrp: ItemGroup) (depth: int) : string =
+            let itmGrpString =
+                (sprintf $"%s{getIndentation depth}[[%s{itmGrp.Name}]]\n")
+                    +
+                (itmGrp.Items
+                 |> List.map (fun (item: Item) -> sprintf $"%s{getIndentation (depth + 1)}%s{itemToString item}\n")
+                 |> List.fold (fun acc str -> acc + str) "")
             
             if List.length itmGrp.SubItemGroups = 0 then
-                stringBuilder.ToString()
-            else    
-                for subItemGroup in itmGrp.SubItemGroups do
-                    formatItemGroup subItemGroup (depth + 1) stringBuilder |> ignore
-                ""
+                itmGrpString
+            else
+                let subItemGroupsString =
+                    itmGrp.SubItemGroups
+                    |> List.map (fun subItemGroup -> formatItemGroup subItemGroup (depth + 1))  
+                    |> List.fold (fun acc str -> acc + str) ""
+                    
+                itmGrpString + subItemGroupsString
     
-        let stringBuilder = StringBuilder()
-        formatItemGroup itemGroup 0 stringBuilder
+        formatItemGroup itemGroup 0 
     
