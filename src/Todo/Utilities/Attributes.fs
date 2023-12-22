@@ -1,4 +1,4 @@
-﻿namespace Todo
+﻿namespace Todo.Utilities
 
 open System
 

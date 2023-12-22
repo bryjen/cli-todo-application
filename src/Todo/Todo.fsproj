@@ -11,11 +11,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Include="Attributes.fs" />
+        <Compile Include="Utilities\Attributes.fs" />
+        <Compile Include="Utilities\Date.fs" />
+        <Compile Include="Utilities\Console.fs" />
+        <Compile Include="ItemGroup.fs" />
         <Compile Include="Data.fs" />
         <Compile Include="Command.fs" />
-        <Folder Include="Utilities\" />
-        <Compile Include="ItemGroup.fs" />
     </ItemGroup>
 
 </Project>

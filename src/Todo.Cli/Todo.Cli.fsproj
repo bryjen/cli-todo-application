@@ -7,10 +7,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="Utilities\Files.fs" />
+        <Compile Include="Config.fs" />
         <Compile Include="Commands\List.fs" />
         <Compile Include="Commands\Create.fs" />
-        <Compile Include="Config.fs" />
-        <Compile Include="Files.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 
@@ -22,6 +22,10 @@
         <Content Include="config.json">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FSharp.SystemTextJson" Version="1.2.42" />
     </ItemGroup>
 
     <Target Name="CreateDataDirectory" BeforeTargets="Build">

@@ -1,4 +1,4 @@
-﻿namespace Todo.Cli
+﻿namespace Todo.Cli.Utilities
 
 open System
 open System.IO
@@ -6,6 +6,7 @@ open System.Reflection
 
 open System.Text
 open System.Text.Json
+open System.Text.Json.Serialization
 open Todo
 
 type AppConfig =
@@ -29,16 +30,21 @@ module Files =
     /// The file path of the file where the app/program data is saved to.
     let filePath = sprintf $"%s{executableDirectory}/%s{appConfig.DataFilesDirectory}/data.json"
     
+    let private jsonSerializerOptions =
+        let options = JsonSerializerOptions(WriteIndented = true)
+        JsonFSharpOptions.Default().AddToJsonSerializerOptions(options)
+        options    
+        
     /// Attempts to save the the provided AppData record given a file path.
     let saveAppData (filePath: string) (appData: AppData) : Result<unit, Exception> =
         try
             if not (File.Exists(filePath)) then
                 use fileStream = File.Create(filePath)
-                let jsonData = JsonSerializer.Serialize(appData, JsonSerializerOptions(WriteIndented = true))
+                let jsonData = JsonSerializer.Serialize(appData, jsonSerializerOptions)
                 let asBytes = Encoding.ASCII.GetBytes(jsonData)
                 Ok (fileStream.Write(asBytes))
             else
-                let jsonData = JsonSerializer.Serialize(appData, JsonSerializerOptions(WriteIndented = true))
+                let jsonData = JsonSerializer.Serialize(appData, jsonSerializerOptions)
                 Ok (File.WriteAllText(filePath, jsonData))
         with
             | ex -> Error ex
@@ -47,6 +53,6 @@ module Files =
     let loadAppData (filePath: string) : Result<AppData, Exception> =
         try
             let rawJson = File.ReadAllText(filePath)
-            Ok (JsonSerializer.Deserialize<AppData>(rawJson))
+            Ok (JsonSerializer.Deserialize<AppData>(rawJson, jsonSerializerOptions))
         with
             | ex -> Error ex

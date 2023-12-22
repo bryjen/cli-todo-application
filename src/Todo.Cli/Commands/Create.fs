@@ -2,12 +2,12 @@
 module Todo.Cli.Commands.Create
 
 open Todo
-open Todo.Attributes.Command
+open Todo.Utilities.Attributes.Command
 
 //  Replace with app data
 let create (argv: string array) : AppData =
     printf "You just executed create!"
-    AppDataFunctions.defaultAppDat
+    AppDataFunctions.defaultAppData
 
 [<CommandInformation>]
 let command_data

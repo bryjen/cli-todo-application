@@ -3,7 +3,7 @@
 open System
 open System.Reflection
 open Microsoft.FSharp.Core
-open Todo.Attributes.Command
+open Todo.Utilities.Attributes.Command
 
 type CommandFunction =
     | ChangesData of (string array -> AppData)  //  command function changes program data
