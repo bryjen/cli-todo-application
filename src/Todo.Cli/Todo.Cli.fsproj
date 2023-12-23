@@ -1,13 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <AssemblyName>todos</AssemblyName>
         <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
+        <AssemblyName>todos</AssemblyName>
+        
+        <PackAsTool>true</PackAsTool>
+        <ToolCommandName>todos</ToolCommandName>
+        <PackageOutputPath>./nupkg</PackageOutputPath>
     </PropertyGroup>
 
     <ItemGroup>
         <Compile Include="Utilities\Files.fs" />
+        <Compile Include="Utilities\Arguments.fs" />
         <Compile Include="Config.fs" />
         <Compile Include="Commands\List.fs" />
         <Compile Include="Commands\Create.fs" />
@@ -25,11 +30,12 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Argu" Version="6.1.4" />
       <PackageReference Include="FSharp.SystemTextJson" Version="1.2.42" />
     </ItemGroup>
 
     <Target Name="CreateDataDirectory" BeforeTargets="Build">
-        <MakeDir Directories="$(OutputPath)\Datak" />
+        <MakeDir Directories="$(OutputPath)\Data" />
     </Target>
 
 </Project>

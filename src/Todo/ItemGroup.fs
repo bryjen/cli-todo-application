@@ -7,6 +7,7 @@ type Label =
 
 type ItemGroup =
     { Name: string
+      Description: string option
       SubItemGroups: ItemGroup list
       Items: Item list
       Labels: Label list }
