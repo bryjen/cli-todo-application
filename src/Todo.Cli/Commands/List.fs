@@ -28,7 +28,7 @@ let private display (appData: AppData) =
     AnsiConsole.Clear()
         
     appData.ItemGroups
-    |> List.map ItemGroupFunctions.itemGroupToString 
+    |> List.map (fun itemGroup -> itemGroup.ToString()) 
     |> List.map (fun str -> AnsiConsole.MarkupLine($"%s{str}")) 
     |> ignore
     
@@ -41,7 +41,7 @@ let private interactiveDisplay (appData: AppData) =
     AnsiConsole.MarkupLine("[red]Interactive functionality to be implemented soon.[/]")
     
     appData.ItemGroups
-    |> List.map ItemGroupFunctions.itemGroupToString 
+    |> List.map (fun itemGroup -> itemGroup.ToString()) 
     |> List.map (fun str -> AnsiConsole.MarkupLine($"%s{str}")) 
     |> ignore
     

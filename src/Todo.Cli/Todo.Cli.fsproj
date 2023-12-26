@@ -8,14 +8,16 @@
         <PackAsTool>true</PackAsTool>
         <ToolCommandName>todos</ToolCommandName>
         <PackageOutputPath>./nupkg</PackageOutputPath>
+        
+        <DefineConstants>Debug</DefineConstants>
     </PropertyGroup>
 
     <ItemGroup>
         <Compile Include="Utilities\Files.fs" />
         <Compile Include="Utilities\Arguments.fs" />
-        <Compile Include="Config.fs" />
         <Compile Include="Commands\List.fs" />
         <Compile Include="Commands\Create.fs" />
+        <Compile Include="Commands\Delete.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 
