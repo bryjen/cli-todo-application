@@ -108,6 +108,5 @@ let delete (argv: string array) : AppData =
 [<CommandInformation>]
 let ``'delete' Command Config`` () : Command.Config =
     { Command = "delete"
-      Description = "Deletes an item/item group."
-      Help = None
+      Help = "Deletes an item/item group."
       Function = CommandFunction.ChangesData delete}

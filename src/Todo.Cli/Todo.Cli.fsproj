@@ -16,6 +16,7 @@
         <Compile Include="Commands\List.fs" />
         <Compile Include="Commands\Create.fs" />
         <Compile Include="Commands\Delete.fs" />
+        <Compile Include="Commands\Help.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 

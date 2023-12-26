@@ -1,6 +1,5 @@
 ﻿module Todo.Cli.Program
 
-open Spectre.Console
 open Todo
 open Todo.Cli.Utilities
 open Todo.Cli.Utilities.Arguments
@@ -18,7 +17,7 @@ let rec main argv =
     //  Process command using command map
     match splitToCommandAndArgs argv with
     | None ->
-        printfn "No arguments passed, functionality will be implemented soon."
+        Commands.Help.printCommandsHelp Array.empty // functions identically if the user entered '... help'
     | Some (command, arguments) ->
         match commandMap.getConfig command with
         | None -> 

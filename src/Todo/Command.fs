@@ -15,8 +15,7 @@ module Command =
     /// The configuration of a command
     type Config =
         { Command: string
-          Description: string
-          Help: string option
+          Help: string
           Function: CommandFunction }
         
     /// Type that stores a list of Command.Config records and has some member functions/methods that provided convenient

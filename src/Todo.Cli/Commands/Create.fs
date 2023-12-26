@@ -137,6 +137,5 @@ let create (argv: string array) : AppData =
 [<CommandInformation>]
 let ``'create' Command Config`` () : Command.Config =
     { Command = "create"
-      Description = "Creates something."
-      Help = None
+      Help = "Creates an item/item group."
       Function = CommandFunction.ChangesData create}

@@ -78,6 +78,5 @@ let list (argv: string array) : unit =
 [<CommandInformation>]
 let ``'list' Command Config`` () : Command.Config =
     { Command = "list"
-      Description = "Displays a summarized list of the current todos."
-      Help = None
+      Help = "Displays the current todos." 
       Function = CommandFunction.NoDataChange list }
