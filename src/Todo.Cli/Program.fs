@@ -9,18 +9,6 @@ open Todo.Cli.Utilities.Arguments
 [<EntryPoint>]
 let rec main argv =
    
-#if Debug
-    //  Display
-    Todo.Cli.Commands.List.list Array.empty     
-      
-    let newAppData = Todo.Cli.Commands.Create.create [|"item-group"; "-n"; "COMP 353"; "--path"; "University"|]
-    
-    //  Display new app data
-    newAppData.ItemGroups
-    |> List.map (fun itemGroup -> itemGroup.ToString()) 
-    |> List.map (fun str -> AnsiConsole.MarkupLine($"%s{str}")) 
-    |> ignore
-#else
     //  Get command map 
     let commandMap = 
         match Command.getCommandMap () with
@@ -37,7 +25,6 @@ let rec main argv =
             printfn "Could not find the indicated command, please try again."
         | Some config ->
             processCommand config arguments |> ignore
-#endif
     0
     
 and processCommand (commandConfig: Command.Config) (argv: string array) : AppData option =

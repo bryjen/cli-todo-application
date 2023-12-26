@@ -55,8 +55,6 @@ and CreateItemArguments =
 
 /// Updates the app data by creating the specified item group
 let rec private createItemGroup (appData: AppData) (itemGroupArgs: ParseResults<CreateItemGroupArguments>) : AppData =
-    printfn "Creating item group!"
-    
     // Creating the new item group
     let defaultItemGroup = ItemGroup.Default
     let newName = match (itemGroupArgs.TryGetResult CreateItemGroupArguments.Name) with | Some name -> name | None -> defaultItemGroup.Name 
@@ -74,13 +72,30 @@ let rec private createItemGroup (appData: AppData) (itemGroupArgs: ParseResults<
         printfn "Successfully created new item group!"
         { appData with ItemGroups = newItemGroupConfig.SubItemGroups }
     | None ->
-        printfn "Creation failed, womp womp"
+        printfn "Creation of item group failed, womp womp"
         appData
     
 /// Updates the app data by creating the specified item
 let private createItem (appData: AppData) (itemArgs: ParseResults<CreateItemArguments>) : AppData =
-    printfn $"create item: %A{itemArgs}"
-    appData
+    // Creating the new item group
+    let defaultItem = Item.Default
+    let newName = match (itemArgs.TryGetResult CreateItemArguments.Name) with | Some name -> name | None -> defaultItem.Name 
+    let newDesc = match (itemArgs.TryGetResult CreateItemArguments.Description) with | Some descOption -> descOption | None -> None
+    // ...
+    let newItem = { defaultItem with Name = newName; Description = newDesc }
+    
+    
+    // Set all item groups to a similar parent so we can use some functions
+    let tempItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
+    let newItemGroupConfigOption = tempItemGroup.tryAddItem newItem (itemArgs.GetResult CreateItemArguments.Path)
+    
+    match newItemGroupConfigOption with
+    | Some newItemGroupConfig ->
+        printfn "Successfully created new item!"
+        { appData with ItemGroups = newItemGroupConfig.SubItemGroups }
+    | None ->
+        printfn "Creation of item failed, womp womp"
+        appData
 
 /// <summary>
 /// Implements the logic for the 'list' command.

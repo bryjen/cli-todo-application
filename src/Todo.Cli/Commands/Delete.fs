@@ -30,17 +30,18 @@ and DeleteItemGroupArguments =
             | Path _ -> "The path of the item group to delete."
     
 and DeleteItemArguments =
+    | [<Hidden>] Hidden 
     | [<Unique; Mandatory; AltCommandLine("-p")>] Path of path:string list
     
     interface IArgParserTemplate with
         member this.Usage =
             match this with
+            | Hidden -> ""
             | Path _ -> "The path of the item to delete. The last token is the item, and the tokens before that are item groups.\n" +
                         "Ex. [\"University\"; \"Assignment #1\"] will delete the item 'Assignment #1' in the item group 'University'" 
             
 /// Updates the app data by creating the specified item group
 let private deleteItemGroup (appData: AppData) (itemGroupArgs: ParseResults<DeleteItemGroupArguments>) : AppData =
-    
     // Set all item groups to a similar parent so we can use some functions
     let tempItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
     let newItemGroupConfigOption = tempItemGroup.tryDeleteSubItemGroup (itemGroupArgs.GetResult DeleteItemGroupArguments.Path)
@@ -50,13 +51,22 @@ let private deleteItemGroup (appData: AppData) (itemGroupArgs: ParseResults<Dele
         printfn "Successfully deleted the item group!"
         { appData with ItemGroups = newItemGroupConfig.SubItemGroups }
     | None ->
-        printfn "Deletion failed, doo doo"
+        printfn "Deletion of the item group failed, doo doo"
         appData
     
 /// Updates the app data by creating the specified item
 let private deleteItem (appData: AppData) (itemArgs: ParseResults<DeleteItemArguments>) : AppData =
-    printfn $"delete item: %A{itemArgs}"
-    appData
+    // Set all item groups to a similar parent so we can use some functions
+    let tempItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
+    let newItemGroupConfigOption = tempItemGroup.tryDeleteItem (itemArgs.GetResult DeleteItemArguments.Path)
+    
+    match newItemGroupConfigOption with
+    | Some newItemGroupConfig ->
+        printfn "Successfully deleted the item!"
+        { appData with ItemGroups = newItemGroupConfig.SubItemGroups }
+    | None ->
+        printfn "Deletion of the item failed, doo doo"
+        appData
             
 /// <summary>
 /// Implements the logic for the 'list' command.

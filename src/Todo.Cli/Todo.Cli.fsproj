@@ -8,8 +8,6 @@
         <PackAsTool>true</PackAsTool>
         <ToolCommandName>todos</ToolCommandName>
         <PackageOutputPath>./nupkg</PackageOutputPath>
-        
-        <DefineConstants>Debug</DefineConstants>
     </PropertyGroup>
 
     <ItemGroup>
