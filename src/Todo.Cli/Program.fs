@@ -1,23 +1,27 @@
 ﻿module Todo.Cli.Program
 
 open Todo
+open Todo.Cli.Commands
 open Todo.Cli.Utilities
 open Todo.Cli.Utilities.Arguments
 
+let commandConfigs = [
+    Help.config
+    List.config
+    Create.config
+    Delete.config
+]
 
 [<EntryPoint>]
 let rec main argv =
    
     //  Get command map 
-    let commandMap = 
-        match Command.getCommandMap () with
-        | Ok commandMap -> commandMap
-        | Error ex -> raise ex
+    let commandMap = Command.CommandMap commandConfigs 
     
     //  Process command using command map
     match splitToCommandAndArgs argv with
     | None ->
-        Commands.Help.printCommandsHelp Array.empty // functions identically if the user entered '... help'
+        printCommandsHelp Array.empty // functions identically if the user entered '... help'
     | Some (command, arguments) ->
         match commandMap.getConfig command with
         | None -> 

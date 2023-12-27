@@ -1,8 +1,11 @@
-﻿[<Microsoft.FSharp.Core.RequireQualifiedAccess>]
+﻿[<Microsoft.FSharp.Core.AutoOpen>]
+[<Microsoft.FSharp.Core.RequireQualifiedAccess>]
 module Todo.Cli.Commands.Create
 
 open System
 open Argu
+open Spectre.Console
+open FsToolkit.ErrorHandling
 
 open Todo
 open Todo.Cli.Utilities
@@ -29,6 +32,16 @@ and CreateItemGroupArguments =
     | [<Unique; AltCommandLine("-d")>] Description of description:string option
     | [<Unique; Mandatory; AltCommandLine("-p")>] Path of path:string list
     
+    /// <summary>
+    /// Converts the parse results into a item group record.
+    /// </summary>
+    static member ToItemGroup (parseResults: ParseResults<CreateItemGroupArguments>) : ItemGroup =
+        let defaultItemGroup = ItemGroup.Default
+        let newName = match (parseResults.TryGetResult CreateItemGroupArguments.Name) with | Some name -> name | None -> defaultItemGroup.Name 
+        let newDesc = match (parseResults.TryGetResult CreateItemGroupArguments.Description) with | Some descOption -> descOption | None -> None
+        // ...
+        { defaultItemGroup with Name = newName; Description = newDesc }
+    
     interface IArgParserTemplate with
         member this.Usage =
             match this with
@@ -45,6 +58,15 @@ and CreateItemArguments =
     | [<Unique; AltCommandLine("-d")>] Description of description:string option
     | [<Unique; Mandatory; AltCommandLine("-p")>] Path of path:string list
     
+    /// <summary>
+    /// Converts the parse results into a item record.
+    /// </summary>
+    static member ToItem (parseResults: ParseResults<CreateItemArguments>) : Item =
+        let defaultItem = Item.Default
+        let newName = match (parseResults.TryGetResult CreateItemArguments.Name) with | Some name -> name | None -> defaultItem.Name 
+        let newDesc = match (parseResults.TryGetResult CreateItemArguments.Description) with | Some descOption -> descOption | None -> None
+        { defaultItem with Name = newName; Description = newDesc }
+    
     interface IArgParserTemplate with
         member this.Usage =
             match this with
@@ -52,90 +74,80 @@ and CreateItemArguments =
             | Description _ -> "An accompanying description."
             | Path _ -> "The path of the item group to put the produced item in. Ex. [\"University\"; \"Clubs\"] will " +
                         "put the item in the \"Clubs\" item group of the \"University\" item group, if they exist."
-
-/// Updates the app data by creating the specified item group
-let rec private createItemGroup (appData: AppData) (itemGroupArgs: ParseResults<CreateItemGroupArguments>) : AppData =
-    // Creating the new item group
-    let defaultItemGroup = ItemGroup.Default
-    let newName = match (itemGroupArgs.TryGetResult CreateItemGroupArguments.Name) with | Some name -> name | None -> defaultItemGroup.Name 
-    let newDesc = match (itemGroupArgs.TryGetResult CreateItemGroupArguments.Description) with | Some descOption -> descOption | None -> None
-    // ...
-    let newItemGroup = { defaultItemGroup with Name = newName; Description = newDesc }
-    
-    
-    // Set all item groups to a similar parent so we can use some functions
-    let tempItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
-    let newItemGroupConfigOption = tempItemGroup.tryAddSubItemGroup newItemGroup (itemGroupArgs.GetResult CreateItemGroupArguments.Path)
-    
-    match newItemGroupConfigOption with
-    | Some newItemGroupConfig ->
-        printfn "Successfully created new item group!"
-        { appData with ItemGroups = newItemGroupConfig.SubItemGroups }
-    | None ->
-        printfn "Creation of item group failed, womp womp"
-        appData
-    
-/// Updates the app data by creating the specified item
-let private createItem (appData: AppData) (itemArgs: ParseResults<CreateItemArguments>) : AppData =
-    // Creating the new item group
-    let defaultItem = Item.Default
-    let newName = match (itemArgs.TryGetResult CreateItemArguments.Name) with | Some name -> name | None -> defaultItem.Name 
-    let newDesc = match (itemArgs.TryGetResult CreateItemArguments.Description) with | Some descOption -> descOption | None -> None
-    // ...
-    let newItem = { defaultItem with Name = newName; Description = newDesc }
-    
-    
-    // Set all item groups to a similar parent so we can use some functions
-    let tempItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
-    let newItemGroupConfigOption = tempItemGroup.tryAddItem newItem (itemArgs.GetResult CreateItemArguments.Path)
-    
-    match newItemGroupConfigOption with
-    | Some newItemGroupConfig ->
-        printfn "Successfully created new item!"
-        { appData with ItemGroups = newItemGroupConfig.SubItemGroups }
-    | None ->
-        printfn "Creation of item failed, womp womp"
-        appData
-
-/// <summary>
-/// Implements the logic for the 'list' command.
-/// </summary>
-/// <param name="argv">List of arguments to be parsed.</param>
-let create (argv: string array) : AppData =
-    
-    // Loading app data
-    let appData = 
-        match Files.loadAppData Files.filePath with
-        | Ok appData -> appData
-        | Error err -> raise err
         
-    // Creating the parser
+/// <summary>
+/// Parses the array of CLI arguments.
+/// </summary>
+let internal parse (argv: string array) : Result<ParseResults<CreateArguments>, Exception> =
     let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> Some ConsoleColor.Red)
     let parser = ArgumentParser.Create<CreateArguments>(errorHandler = errorHandler)
     
-    // Tries parsing
     try
         let parsedArgs = parser.Parse argv
-       
-        match parsedArgs.TryGetResult Item_Group with
-        | _ when (List.length (parsedArgs.GetAllResults())) = 0 ->
-            printfn "%s" (parser.PrintUsage("You must enter some arguments!"))
-            appData
-        | None ->
-            createItem appData (parsedArgs.GetResult Item) 
-        | Some _ ->
-            createItemGroup appData (parsedArgs.GetResult Item_Group) 
+        Ok parsedArgs
     with
-        | :? ArguParseException as ex ->
-            printfn $"%s{ex.Message}"
-            appData
-        | ex ->
-            printfn "Unexpected exception"
-            printfn $"%s{ex.Message}"
-            appData
+        | :? ArguParseException as ex -> Error ex
+        | ex -> Error ex
+        
+/// <summary>
+/// Attempts to create the specified item from the given arguments. Returns an exception, or the updated list of item
+/// groups.
+/// </summary>
+/// <param name="appData">The current state/data of the application.</param>
+/// <param name="parseResults">Results of parsing the CLI arguments.</param>
+let internal create (appData: AppData) (parseResults: ParseResults<CreateArguments>) : Result<ItemGroup list, Exception> =
+    match parseResults.TryGetResult CreateArguments.Item_Group with
+    // create item group
+    | Some itemGroupParseResults -> 
+        let newItemGroup = CreateItemGroupArguments.ToItemGroup itemGroupParseResults 
+        let tempRootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
+        let newRootItemGroupOption = tempRootItemGroup.tryAddSubItemGroup newItemGroup (itemGroupParseResults.GetResult CreateItemGroupArguments.Path)
+        
+        match newRootItemGroupOption with
+        | Some itemGroup -> Ok itemGroup.SubItemGroups
+        | None -> Error (Exception("Could not create item group."))
+        
+    // create item 
+    | None ->
+        let itemParseResults = parseResults.GetResult CreateArguments.Item  //  guaranteed to be ok
+        let newItem = CreateItemArguments.ToItem itemParseResults 
+        let tempRootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
+        let newRootItemGroupOption = tempRootItemGroup.tryAddItem newItem (itemParseResults.GetResult CreateItemArguments.Path)
+        
+        match newRootItemGroupOption with
+        | Some itemGroup -> Ok itemGroup.SubItemGroups
+        | None -> Error (Exception("Could not create item."))
+        
+/// <summary>
+/// Update the current application state/data with new new list of item groups.
+/// </summary>
+/// <param name="appData">The current state/data of the application.</param>
+/// <param name="newItemGroups">The new list of item groups.</param>
+let internal update (appData: AppData) (newItemGroups: ItemGroup list) : Result<AppData, Exception> =
+    Ok { appData with ItemGroups = newItemGroups }
+    
+/// <summary>
+/// Implements the logic for the 'create' command.
+/// </summary>
+/// <param name="argv">List of arguments to be parsed.</param>
+let execute (argv: string array) : AppData =
+    let appData = match Files.loadAppData Files.filePath with | Ok appData -> appData | Error err -> raise err
+        
+    match
+        result {
+            let! parsedArgs = parse argv
+            let! newItemGroups = create appData parsedArgs
+            return! update appData newItemGroups 
+        }
+    with
+    | Ok newAppData ->
+        AnsiConsole.MarkupLine "Successfully created the specified item group." 
+        newAppData
+    | Error err ->
+        AnsiConsole.MarkupLine (sprintf $"Creation failed with message: %s{err.Message}")
+        appData
 
-[<CommandInformation>]
-let ``'create' Command Config`` () : Command.Config =
+let config : Command.Config =
     { Command = "create"
       Help = "Creates an item/item group."
-      Function = CommandFunction.ChangesData create}
+      Function = CommandFunction.ChangesData execute}

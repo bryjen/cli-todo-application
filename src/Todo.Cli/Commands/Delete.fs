@@ -1,9 +1,12 @@
-﻿[<Microsoft.FSharp.Core.RequireQualifiedAccess>]
+﻿[<Microsoft.FSharp.Core.AutoOpen>]
+[<Microsoft.FSharp.Core.RequireQualifiedAccess>]
 module Todo.Cli.Commands.Delete
 
 open System
 open Argu
+open FsToolkit.ErrorHandling
 
+open Spectre.Console
 open Todo
 open Todo.Cli.Utilities
 open Todo.Utilities.Attributes.Command
@@ -40,73 +43,72 @@ and DeleteItemArguments =
             | Path _ -> "The path of the item to delete. The last token is the item, and the tokens before that are item groups.\n" +
                         "Ex. [\"University\"; \"Assignment #1\"] will delete the item 'Assignment #1' in the item group 'University'" 
             
-/// Updates the app data by creating the specified item group
-let private deleteItemGroup (appData: AppData) (itemGroupArgs: ParseResults<DeleteItemGroupArguments>) : AppData =
-    // Set all item groups to a similar parent so we can use some functions
-    let tempItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
-    let newItemGroupConfigOption = tempItemGroup.tryDeleteSubItemGroup (itemGroupArgs.GetResult DeleteItemGroupArguments.Path)
-    
-    match newItemGroupConfigOption with
-    | Some newItemGroupConfig ->
-        printfn "Successfully deleted the item group!"
-        { appData with ItemGroups = newItemGroupConfig.SubItemGroups }
-    | None ->
-        printfn "Deletion of the item group failed, doo doo"
-        appData
-    
-/// Updates the app data by creating the specified item
-let private deleteItem (appData: AppData) (itemArgs: ParseResults<DeleteItemArguments>) : AppData =
-    // Set all item groups to a similar parent so we can use some functions
-    let tempItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
-    let newItemGroupConfigOption = tempItemGroup.tryDeleteItem (itemArgs.GetResult DeleteItemArguments.Path)
-    
-    match newItemGroupConfigOption with
-    | Some newItemGroupConfig ->
-        printfn "Successfully deleted the item!"
-        { appData with ItemGroups = newItemGroupConfig.SubItemGroups }
-    | None ->
-        printfn "Deletion of the item failed, doo doo"
-        appData
-            
 /// <summary>
-/// Implements the logic for the 'list' command.
+/// Parses the array of CLI arguments.
 /// </summary>
-/// <param name="argv">List of arguments to be parsed.</param>
-let delete (argv: string array) : AppData =
-    
-    // Loading app data
-    let appData = 
-        match Files.loadAppData Files.filePath with
-        | Ok appData -> appData
-        | Error err -> raise err
-        
-    // Creating the parser
+let internal parse (argv: string array) : Result<ParseResults<DeleteArguments>, Exception> =
     let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> Some ConsoleColor.Red)
     let parser = ArgumentParser.Create<DeleteArguments>(errorHandler = errorHandler)
     
-    // Tries parsing
     try
         let parsedArgs = parser.Parse argv
-       
-        match parsedArgs.TryGetResult Item_Group with
-        | _ when (List.length (parsedArgs.GetAllResults())) = 0 ->
-            printfn "%s" (parser.PrintUsage("You must enter some arguments!"))
-            appData
-        | None ->
-            deleteItem appData (parsedArgs.GetResult Item) 
-        | Some _ ->
-            deleteItemGroup appData (parsedArgs.GetResult Item_Group) 
+        Ok parsedArgs
     with
-        | :? ArguParseException as ex ->
-            printfn $"%s{ex.Message}"
-            appData
-        | ex ->
-            printfn "Unexpected exception"
-            printfn $"%s{ex.Message}"
-            appData
-
-[<CommandInformation>]
-let ``'delete' Command Config`` () : Command.Config =
+        | :? ArguParseException as ex -> Error ex
+        | ex -> Error ex
+        
+/// <summary>
+/// Attempts to <b>delete</b> the specified item from the given arguments. Returns an exception, or the updated list of
+/// item groups.
+/// </summary>
+/// <param name="appData">The current state/data of the application.</param>
+/// <param name="parseResults">Results of parsing the CLI arguments.</param>
+let internal delete (appData: AppData) (parseResults: ParseResults<DeleteArguments>) : Result<ItemGroup list, Exception> =
+    let tempRootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
+    
+    let newItemGroupConfigOption = 
+        match parseResults.TryGetResult DeleteArguments.Item_Group with
+        | Some itemGroupParseResults -> // Delete an item group
+            tempRootItemGroup.tryDeleteSubItemGroup (itemGroupParseResults.GetResult DeleteItemGroupArguments.Path)
+        | None -> // Delete an item
+            let itemParseResults = parseResults.GetResult DeleteArguments.Item  // Guaranteed not to throw
+            tempRootItemGroup.tryDeleteItem (itemParseResults.GetResult DeleteItemArguments.Path)
+        
+    match newItemGroupConfigOption with
+    | Some itemGroup -> Ok itemGroup.SubItemGroups
+    | None -> Error (Exception("Deletion failed."))
+    
+/// <summary>
+/// Update the current application state/data with new new list of item groups.
+/// </summary>
+/// <param name="appData">The current state/data of the application.</param>
+/// <param name="newItemGroups">The new list of item groups.</param>
+let internal update (appData: AppData) (newItemGroups: ItemGroup list) : Result<AppData, Exception> =
+    Ok { appData with ItemGroups = newItemGroups }
+        
+/// <summary>
+/// Implements the logic for the 'delete' command.
+/// </summary>
+/// <param name="argv">List of arguments to be parsed.</param>
+let execute (argv: string array) : AppData =
+    let appData = match Files.loadAppData Files.filePath with | Ok appData -> appData | Error err -> raise err
+    
+    let deletionResult = 
+        result {
+            let! parsedArgs = parse argv
+            let! newItemGroups = delete appData parsedArgs
+            return! update appData newItemGroups
+        }
+        
+    match deletionResult with
+    | Ok newAppData ->
+        AnsiConsole.MarkupLine "Successfully deleted the specified item group." 
+        newAppData
+    | Error err ->
+        AnsiConsole.MarkupLine (sprintf $"Deletion failed with message: %s{err.Message}")
+        appData // return 'old' app data
+    
+let config : Command.Config =
     { Command = "delete"
       Help = "Deletes an item/item group."
-      Function = CommandFunction.ChangesData delete}
+      Function = CommandFunction.ChangesData execute}
