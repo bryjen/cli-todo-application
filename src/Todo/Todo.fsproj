@@ -11,9 +11,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Compile Include="Console\Console.fs" />
+        <Compile Include="Console\ColorTable.fs" />
         <Compile Include="Utilities\Attributes.fs" />
         <Compile Include="Utilities\Date.fs" />
-        <Compile Include="Utilities\Console.fs" />
         <Compile Include="Label.fs" />
         <Compile Include="ItemGroup.fs" />
         <Compile Include="Data.fs" />

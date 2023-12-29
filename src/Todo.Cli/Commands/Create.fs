@@ -31,27 +31,28 @@ let internal parse (argv: string array) : Result<ParseResults<CreateArguments>, 
 /// <param name="appData">The current state/data of the application.</param>
 /// <param name="parseResults">Results of parsing the CLI arguments.</param>
 let internal create (appData: AppData) (parseResults: ParseResults<CreateArguments>) : Result<ItemGroup list, Exception> =
-    match parseResults.TryGetResult CreateArguments.Item_Group with
-    // create item group
-    | Some itemGroupParseResults -> 
-        let newItemGroup = CreateItemGroupArguments.ToItemGroup itemGroupParseResults 
-        let tempRootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
-        let newRootItemGroupOption = tempRootItemGroup.tryAddSubItemGroup newItemGroup (itemGroupParseResults.GetResult CreateItemGroupArguments.Path)
+    let modifyResult = 
+        match parseResults.TryGetResult CreateArguments.Item_Group with
+        // create item group
+        | Some itemGroupParseResults -> 
+            let newItemGroup = CreateItemGroupArguments.ToItemGroup itemGroupParseResults 
+            let tempRootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
+            let path = itemGroupParseResults.GetResult CreateItemGroupArguments.Path
+            
+            let modify = ItemGroup.AddItemGroup newItemGroup
+            ItemGroup.Modify tempRootItemGroup modify path
+            
+        // create item 
+        | None ->
+            let itemParseResults = parseResults.GetResult CreateArguments.Item  //  guaranteed to be ok
+            let newItem = CreateItemArguments.ToItem itemParseResults 
+            let tempRootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
+            let path = itemParseResults.GetResult CreateItemArguments.Path
+            
+            let modify = ItemGroup.AddItem newItem
+            ItemGroup.Modify tempRootItemGroup modify path
         
-        match newRootItemGroupOption with
-        | Some itemGroup -> Ok itemGroup.SubItemGroups
-        | None -> Error (Exception("Could not create item group."))
-        
-    // create item 
-    | None ->
-        let itemParseResults = parseResults.GetResult CreateArguments.Item  //  guaranteed to be ok
-        let newItem = CreateItemArguments.ToItem itemParseResults 
-        let tempRootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
-        let newRootItemGroupOption = tempRootItemGroup.tryAddItem newItem (itemParseResults.GetResult CreateItemArguments.Path)
-        
-        match newRootItemGroupOption with
-        | Some itemGroup -> Ok itemGroup.SubItemGroups
-        | None -> Error (Exception("Could not create item."))
+    Result.bind (fun itemGroup -> Ok itemGroup.SubItemGroups) modifyResult // get modified sub-item groups if ok 
         
 /// <summary>
 /// Update the current application state/data with new new list of item groups.

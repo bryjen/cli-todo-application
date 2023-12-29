@@ -1,4 +1,4 @@
-﻿namespace Todo.Utilities
+﻿namespace Todo
 
 open System
 open System.Globalization

@@ -1,5 +1,6 @@
-﻿module Todo.Cli.Tests.Program
+﻿namespace Todo.Cli.Tests
 
-[<EntryPoint>]
-let main argv =
-    0
+module Main =
+    [<EntryPoint>]
+    let main argv =
+        0

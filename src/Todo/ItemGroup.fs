@@ -39,7 +39,7 @@ type ItemGroup =
         
         let rec formatItemGroup (itmGrp: ItemGroup) (depth: int) : string =
             let itmGrpString =
-                (sprintf $"%s{indentation depth}[[%s{itmGrp.Name}]]\n")
+                (sprintf "%s[[%s]]  %s\n" (indentation depth) itmGrp.Name (Label.FormatLabels itmGrp.Labels)) 
                     +
                 (itmGrp.Items
                  |> List.map (fun (item: Item) -> sprintf $"%s{indentation (depth + 1)}%s{item.ToString()}\n")
@@ -56,22 +56,6 @@ type ItemGroup =
                 itmGrpString + subItemGroupsString
     
         formatItemGroup this 0
-        
-    /// <summary>
-    /// Attempts to get the item group with the specified path.
-    /// </summary>
-    /// <example>
-    /// Passing the following path <c>["University"; "COMP 345"]</c> attempts to first find the item group named
-    /// "University", then the item group "COMP 345" inside of that.
-    /// </example> 
-    member this.getSubItemGroup (path: string list) =
-        if (List.length path) = 0 then
-            Some this 
-        else
-            let nextItemGroup = ItemGroup.tryGetSubItemGroup this.SubItemGroups (List.head path)
-            match nextItemGroup with
-            | Some subItemGrp -> subItemGrp.getSubItemGroup (List.tail path)
-            | None -> None
             
     // Searches this item group's sub item groups for one that has the same name as that of the replacement. Replaces
     // that item group, with the replacement.
@@ -80,105 +64,121 @@ type ItemGroup =
         let newSubList = List.map (fun itemGrp -> if itemGrp.Name = replacement.Name then replacement else itemGrp) this.SubItemGroups  // idk why use 'this', just works
         { this with SubItemGroups = newSubList }
             
+    // Recursively locates a specified (sub) item group.
+    static member private Locate (baseItemGroup: ItemGroup) (path: string list) : Result<ItemGroup, Exception> =
+        match (List.length path) = 0 with
+        | true ->
+            Ok baseItemGroup
+            
+        | false -> 
+            let subItemGroupNames = List.map (fun itemGroup -> itemGroup.Name) baseItemGroup.SubItemGroups
+            let requiredName = (List.head path)
+            
+            match List.contains requiredName subItemGroupNames with
+            | true ->
+                let subItemGroup = baseItemGroup.SubItemGroups
+                                   |> List.filter (fun itemGroup -> itemGroup.Name = requiredName)
+                                   |> List.head
+                                   
+                Result.bind (fun itemGroup -> Locate itemGroup (List.tail path)) (Ok subItemGroup)
+            | false ->
+                let message = sprintf $"Could not find the sub item group \"%s{requiredName}\" in the item group \"%s{baseItemGroup.Name}\""
+                Error (Exception(message))
+    
+    // Recursively replaces the indicated sub item group with its replacement.
+    // Reflects a change to a single (sub) item group.
+    static member private Update (baseItemGroup: ItemGroup) (path: string list) (replacement: ItemGroup) : ItemGroup =
+        
+        // ** DOES NOT HANDLE ERRORS FROM INVALID PATH. Error meant to be handled from a previous call to 'Locate' **
+        
+        let requiredName = List.head path
+        
+        match (List.length path) = 1 with
+        | true ->
+            let newSubItemGroups = List.map (fun itemGroup -> if itemGroup.Name = requiredName then replacement else itemGroup) baseItemGroup.SubItemGroups
+            { baseItemGroup with SubItemGroups = newSubItemGroups } 
+        | false ->
+            let subItemGroup = baseItemGroup.SubItemGroups
+                               |> List.filter (fun itemGroup -> itemGroup.Name = requiredName)
+                               |> List.head
+
+            baseItemGroup.onReplacement (Update subItemGroup (List.tail path) replacement)
+    
     /// <summary>
-    /// Attempts to add a sub- item group.
+    /// Modifies an item group.
     /// </summary>
-    /// <param name="newItemGroup">The new item group to add.</param>
-    /// <param name="path">
-    /// The location to put the item group. Ex. The path ["University"; "Courses"] indicates that there should be a top
-    /// level item group named "University", and that it should have a sub item group "Courses". The new item group will
-    /// be placed as a sub item group to "Courses".
-    /// </param>
-    member this.tryAddSubItemGroup (newItemGroup: ItemGroup) (path: string list) : ItemGroup option =
-        if List.isEmpty path then
-            let newSubList = newItemGroup :: this.SubItemGroups
-            Some { this with SubItemGroups = newSubList }
-        else 
-            option {
-                let matchingSubItemGroups = List.filter (fun itemGroup -> itemGroup.Name = (List.head path)) this.SubItemGroups
-                let! subItemGroup = match List.length matchingSubItemGroups with | 1 -> Some (List.head matchingSubItemGroups) | _ -> None
-                let! newSubItemGroup = subItemGroup.tryAddSubItemGroup newItemGroup path.Tail
-                return this.onReplacement newSubItemGroup 
-            }
+    /// <param name="itemGroup">The item group to modify.</param>
+    /// <param name="modify">A function that modifies an item group. <c>ItemGroup -> Result&lt;ItemGroup, Exception&gt;</c></param>
+    /// <param name="path">The 'path' the item group to modify.</param>
+    /// <example>
+    /// <code>
+    /// let modify = ItemGroup.AddItem newItem
+    /// let modifyResult = ItemGroup.Modify someItemGroup modify ["University"; "COMP 345"; "Assignments"]
+    /// match modifyResult with
+    /// | Ok newItemGroup -> ... // do something with new item group
+    /// | Error ex -> ...        // do something with exception
+    /// </code>
+    /// <br></br>
+    /// In the above example, we attempt to add a new item to our item group <c>someItemGroup</c>. <c>ItemGroup</c>
+    /// provides some functions for modifying item groups by default. See <see cref="ItemGroup.AddItemGroup"/>,
+    /// <see cref="ItemGroup.RemoveItemGroup"/>, <see cref="ItemGroup.AddItem"/>, <see cref="ItemGroup.RemoveItem"/>
+    /// , etc.
+    /// </example>
+    static member Modify
+        (itemGroup: ItemGroup)
+        (modify: ItemGroup -> Result<ItemGroup, Exception>)
+        (path: string list)
+        : Result<ItemGroup, Exception> =
+            
+        result {
+            let! requiredItemGroup = ItemGroup.Locate itemGroup path  // locate
+            let! newItemGroup = modify requiredItemGroup              // modify
+            return ItemGroup.Update itemGroup path newItemGroup       // update
+        }
+    
+    /// <summary>
+    /// Adds a sub item group to the passed item group.
+    /// </summary>
+    /// <param name="newItemGroup">The new sub item group to add.</param>
+    /// <param name="baseItemGroup">The item group to be modified.</param>
+    static member AddItemGroup (newItemGroup: ItemGroup) (baseItemGroup: ItemGroup) : Result<ItemGroup, Exception> =
+        let newSubItemGroups = newItemGroup :: baseItemGroup.SubItemGroups
+        Ok { baseItemGroup with SubItemGroups = newSubItemGroups }
         
     /// <summary>
-    /// Attempts to delete a sub- item group.
+    /// Attempts to remove a sub item group from the passed item group.
     /// </summary>
-    /// <param name="path">
-    /// The location of the item group to delete. Ex. The path ["University"; "Courses"] indicates that there should be a top
-    /// level item group named "University", and that it should have a sub item group "Courses". The item group "Courses" 
-    /// is going to be deleted.
-    /// </param>
-    member this.tryDeleteSubItemGroup (path: string list) : ItemGroup option =
-        if List.isEmpty path then
-            None
-        elif (List.length path = 1) then
-            let newSubList = List.filter (fun itemGroup -> itemGroup.Name <> path.Head) this.SubItemGroups
-            Some { this with SubItemGroups = newSubList }
-        else
-            option {
-                let matchingSubItemGroups = List.filter (fun itemGroup -> itemGroup.Name = (List.head path)) this.SubItemGroups
-                let! subItemGroup = match List.length matchingSubItemGroups with | 1 -> Some (List.head matchingSubItemGroups) | _ -> None
-                let! newSubItemGroup = subItemGroup.tryDeleteSubItemGroup path.Tail
-                return this.onReplacement newSubItemGroup 
-            }
-            
-    // Adds the item to the item group's list of items.
-    member private this.addItem (item: Item) : ItemGroup =
-        let newItemsList = item :: this.Items
-        { this with Items = newItemsList }
-            
+    /// <param name="name">The name of the sub item group to remove.</param>
+    /// <param name="baseItemGroup">The item group to be modified.</param>
+    static member RemoveItemGroup (name: string) (baseItemGroup: ItemGroup) : Result<ItemGroup, Exception> =
+        let newSubItemGroups = List.filter (fun itemGroup -> itemGroup.Name <> name) baseItemGroup.SubItemGroups
+        
+        match (List.length newSubItemGroups) = (List.length baseItemGroup.SubItemGroups) with
+        | true -> Error (Exception(sprintf $"Could not find the sub-item group with the name %s{name}")) 
+        | false -> Ok { baseItemGroup with SubItemGroups = newSubItemGroups } 
+        
     /// <summary>
-    /// Tries to add the provided item using the given path.
+    /// Adds an item to the passed item group.
     /// </summary>
     /// <param name="newItem">The new item to add.</param>
-    /// <param name="path">
-    /// The path of the item to add. Ex. The path ["University"; "COMP 345"] implies that the item will be placed in the
-    /// item group "COMP 345", which, itself, should be inside an in item group "University".
-    /// </param>
-    member this.tryAddItem (newItem: Item) (path: string list) : ItemGroup option =
-        if List.isEmpty path then
-            Some (this.addItem newItem)
-        else
-            option {
-                let matchingSubItemGroups = List.filter (fun itemGroup -> itemGroup.Name = (List.head path)) this.SubItemGroups
-                let! subItemGroup = match List.length matchingSubItemGroups with | 1 -> Some (List.head matchingSubItemGroups) | _ -> None
-                let! newSubItemGroup = subItemGroup.tryAddItem newItem path.Tail
-                return this.onReplacement newSubItemGroup 
-            }
-           
-    // Deletes the item from the item group's list of item.
-    // If the item does not exist, nothing is deleted. 
-    member private this.deleteItem (itemName: string) : ItemGroup =
-        let newItemList = List.filter (fun (item: Item) -> item.Name <> itemName) this.Items
-        { this with Items = newItemList }
+    /// <param name="baseItemGroup">The item group to be modified.</param>
+    static member AddItem (newItem: Item) (baseItemGroup: ItemGroup) : Result<ItemGroup, Exception> =
+        let newItems = newItem :: baseItemGroup.Items
+        Ok { baseItemGroup with Items = newItems }
         
     /// <summary>
-    /// Tries to remove the provided item using the provided path.
+    /// Attempts to remove an item from the passed item group.
     /// </summary>
-    /// <param name="path">
-    /// The path of the item to add. Ex. The path ["University"; "COMP 345"; "Do this"] implies that the item "Do this"
-    /// is to be deleted. This item should be found in the "COMP 345" item group, which, itself, should be inside an item
-    /// group "University".
-    /// </param>
-    member this.tryDeleteItem (path: string list) : ItemGroup option =
-        if List.isEmpty path then
-            None
-        elif (List.length path) = 1 then
-            option {
-                let matchingItems = List.filter (fun (item: Item) -> item.Name = (List.head path)) this.Items
-                let! item = match List.length matchingItems with | 1 -> Some (List.head matchingItems) | _ -> None
-                return this.deleteItem item.Name
-            } 
-        else
-            option {
-                let matchingSubItemGroups = List.filter (fun itemGroup -> itemGroup.Name = (List.head path)) this.SubItemGroups
-                let! subItemGroup = match List.length matchingSubItemGroups with | 1 -> Some (List.head matchingSubItemGroups) | _ -> None
-                let! newSubItemGroup = subItemGroup.tryDeleteItem path.Tail
-                return this.onReplacement newSubItemGroup 
-            }
+    /// <param name="name">The name of the item to remove.</param>
+    /// <param name="baseItemGroup">The item group to be modified.</param>
+    static member RemoveItem (name: string) (baseItemGroup: ItemGroup) : Result<ItemGroup, Exception> =
+        let newItems = List.filter (fun (item: Item) -> item.Name <> name) baseItemGroup.Items
         
+        match (List.length newItems) = (List.length baseItemGroup.Items) with
+        | true -> Error (Exception(sprintf $"Could not find the sub-item group with the name %s{name}")) 
+        | false -> Ok { baseItemGroup with Items = newItems }
         
+    
         
 and Item =
     { Name: string

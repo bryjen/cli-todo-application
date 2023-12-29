@@ -33,17 +33,25 @@ let internal parse (argv: string array) : Result<ParseResults<DeleteArguments>, 
 let internal delete (appData: AppData) (parseResults: ParseResults<DeleteArguments>) : Result<ItemGroup list, Exception> =
     let tempRootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
     
-    let newItemGroupConfigOption = 
+    let modifyResult = 
         match parseResults.TryGetResult DeleteArguments.Item_Group with
         | Some itemGroupParseResults -> // Delete an item group
-            tempRootItemGroup.tryDeleteSubItemGroup (itemGroupParseResults.GetResult DeleteItemGroupArguments.Path)
+            let unprocessedPath = itemGroupParseResults.GetResult DeleteItemGroupArguments.Path
+            let toDelete = unprocessedPath |> List.rev |> List.head
+            let path = unprocessedPath |> List.rev |> List.tail |> List.rev
+            
+            let modify = ItemGroup.RemoveItemGroup toDelete
+            ItemGroup.Modify tempRootItemGroup modify path
         | None -> // Delete an item
-            let itemParseResults = parseResults.GetResult DeleteArguments.Item  // Guaranteed not to throw
-            tempRootItemGroup.tryDeleteItem (itemParseResults.GetResult DeleteItemArguments.Path)
+            let itemParseResults = parseResults.GetResult DeleteArguments.Item
+            let unprocessedPath = itemParseResults.GetResult DeleteItemArguments.Path
+            let toDelete = unprocessedPath |> List.rev |> List.head
+            let path = unprocessedPath |> List.rev |> List.tail |> List.rev
+            
+            let modify = ItemGroup.RemoveItem toDelete
+            ItemGroup.Modify tempRootItemGroup modify path
         
-    match newItemGroupConfigOption with
-    | Some itemGroup -> Ok itemGroup.SubItemGroups
-    | None -> Error (Exception("Deletion failed."))
+    Result.bind (fun itemGroup -> Ok itemGroup.SubItemGroups) modifyResult // get modified sub-item groups if ok 
     
 /// <summary>
 /// Update the current application state/data with new new list of item groups.
