@@ -1,4 +1,5 @@
-module Program =
+﻿module Todo.Cli.Tests.Program
 
-    [<EntryPoint>]
-    let main _ = 0
+[<EntryPoint>]
+let main argv =
+    0

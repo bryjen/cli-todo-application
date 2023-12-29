@@ -2,13 +2,14 @@
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
-
         <IsPackable>false</IsPackable>
         <GenerateProgramFile>false</GenerateProgramFile>
         <IsTestProject>true</IsTestProject>
+        <NoWarn>$(NoWarn);IDE0005</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
+        
         <Compile Include="UnitTest1.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
@@ -21,4 +22,8 @@
         <PackageReference Include="coverlet.collector" Version="6.0.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\Todo.Cli\Todo.Cli.fsproj" />
+    </ItemGroup>
+    
 </Project>

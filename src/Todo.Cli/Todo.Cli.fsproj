@@ -9,8 +9,11 @@
     <ItemGroup>
         <Compile Include="Utilities\Files.fs" />
         <Compile Include="Utilities\Arguments.fs" />
+        <Compile Include="Commands\ListArguments.fs" />
         <Compile Include="Commands\List.fs" />
+        <Compile Include="Commands\CreateArguments.fs" />
         <Compile Include="Commands\Create.fs" />
+        <Compile Include="Commands\DeleteArguments.fs" />
         <Compile Include="Commands\Delete.fs" />
         <Compile Include="Commands\Help.fs" />
         <Compile Include="Program.fs" />
@@ -30,7 +33,17 @@
       <PackageReference Include="Argu" Version="6.1.4" />
       <PackageReference Include="FSharp.SystemTextJson" Version="1.2.42" />
     </ItemGroup>
-
+    
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+            <_Parameter1>Todo.Cli.Tests</_Parameter1>
+        </AssemblyAttribute>
+        
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+            <_Parameter1>FSharp.Compiler.Interactive.Settings</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
+    
     <Target Name="CreateDataDirectory" BeforeTargets="Build">
         <MakeDir Directories="$(OutputPath)\Data" />
     </Target>

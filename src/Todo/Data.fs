@@ -3,7 +3,8 @@
 
 /// Record type containing program and user data
 type AppData =
-    { ItemGroups: ItemGroup list }
+    { ItemGroups: ItemGroup list
+       }
   
 module AppDataFunctions =
     

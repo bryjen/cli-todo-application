@@ -5,10 +5,6 @@ open Todo.Utilities
 open FsToolkit.ErrorHandling
 
 [<AutoOpen>]
-type Label =
-    { Name: string }
-
-[<AutoOpen>]
 type ItemGroup =
     { Name: string
       Description: string option

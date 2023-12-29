@@ -9,18 +9,6 @@ open FsToolkit.ErrorHandling
 
 open Todo
 open Todo.Cli.Utilities
-open Todo.Utilities.Attributes.Command
-
-/// <summary>
-/// Arguments for the 'list' command 
-/// </summary>
-type ListArguments =
-    | [<AltCommandLine("-i")>] Interactive
-    
-    interface IArgParserTemplate with
-        member this.Usage =
-            match this with
-            | Interactive -> "Makes it so that the display is interactive."
 
 /// <summary>
 /// Displays the current configuration of the item groups.
