@@ -3,6 +3,9 @@
 *.sln.iml
 .git
 
+# Other
+.ignore
+
 # /src
 src/Todo/bin
 src/Todo/obj

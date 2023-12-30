@@ -10,7 +10,14 @@ type Label =
     
     // Character prefixed to the label.
     // Indicates to the end user that the string/token represents a label.
-    static member private Symbol: char = '@' 
+    static member private Symbol: char = '#'
+    
+    /// <summary>
+    /// Default values for a <c>Label</c> record.
+    /// </summary>
+    static member Default: Label =
+        { Name = ""
+          Color = Color.Black }
     
     /// <summary>
     /// Attempts to create a <c>Label</c> record.

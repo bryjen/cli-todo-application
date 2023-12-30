@@ -1,5 +1,6 @@
 ﻿namespace Todo.Cli.Commands
 
+open System
 open Argu
 
 open Todo
@@ -10,12 +11,16 @@ open Todo
 type internal CreateArguments =
     | [<First; CliPrefix(CliPrefix.None)>] Item_Group of ParseResults<CreateItemGroupArguments>
     | [<First; CliPrefix(CliPrefix.None)>] Item of ParseResults<CreateItemArguments>
+    | [<First; CliPrefix(CliPrefix.None)>] Label of ParseResults<CreateLabelArguments>
     
     interface IArgParserTemplate with
         member this.Usage =
             match this with
             | Item_Group _ -> "Creates an item group."
             | Item _ -> "Creates an item."
+            | Label _ -> "Creates a label."
+    
+    
     
 /// Arguments for the 'create item-group' subcommand
 and internal CreateItemGroupArguments =
@@ -43,6 +48,8 @@ and internal CreateItemGroupArguments =
                         "\t - [\"University\"; \"2nd Sem\"] Places the item group inside the \"2nd Sem\" item group inside" +
                         "the \"University\" item group, if they exist." 
             
+            
+            
 /// Arguments for the 'create item' subcommand
 and internal CreateItemArguments =
     | [<Unique; Mandatory; AltCommandLine("-n")>] Name of name:string
@@ -66,10 +73,20 @@ and internal CreateItemArguments =
             | Path _ -> "The path of the item group to put the produced item in. Ex. [\"University\"; \"Clubs\"] will " +
                         "put the item in the \"Clubs\" item group of the \"University\" item group, if they exist."
 
+
+
 /// Arguments for the 'create label' subcommand
 and internal CreateLabelArguments =
     | [<Unique; Mandatory; AltCommandLine("-n")>] Name of name:string
     | [<Unique; Mandatory; AltCommandLine("-c")>] Color of color:string
+    
+    /// <summary>
+    /// Converts the parse results into a label record.
+    /// </summary>
+    static member ToLabel (parseResults: ParseResults<CreateLabelArguments>) : Result<Label, Exception> =
+        let name = parseResults.GetResult CreateLabelArguments.Name
+        let colorString = parseResults.GetResult CreateLabelArguments.Color
+        Label.CreateFromString name colorString 
     
     interface IArgParserTemplate with
         member this.Usage =

@@ -178,6 +178,16 @@ type ItemGroup =
         | true -> Error (Exception(sprintf $"Could not find the sub-item group with the name %s{name}")) 
         | false -> Ok { baseItemGroup with Items = newItems }
         
+    static member AddLabel (newLabel: Label) (baseItemGroup: ItemGroup) : Result<ItemGroup, Exception> =
+        let newLabels = newLabel :: baseItemGroup.Labels
+        Ok { baseItemGroup with Labels = newLabels }
+        
+    static member RemoveLabel (name: string) (baseItemGroup: ItemGroup) : Result<ItemGroup, Exception> =
+        let newLabels = List.filter (fun (label: Label) -> label.Name <> name) baseItemGroup.Labels
+        
+        match (List.length newLabels) = (List.length baseItemGroup.Labels) with
+        | true -> Error (Exception(sprintf $"Could not find label with the name \"%s{name}\""))
+        | false -> Ok { baseItemGroup with Labels = newLabels }
     
         
 and Item =
@@ -199,3 +209,4 @@ and Item =
             | WeekDue week -> Week.getWeeksRemainingAsString week 
             
         sprintf $"[red]%s{dueDateFormatted}[/] %s{this.Name}"
+        
