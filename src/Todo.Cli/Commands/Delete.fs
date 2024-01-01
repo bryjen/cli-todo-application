@@ -8,12 +8,10 @@ open FsToolkit.ErrorHandling
 
 open Spectre.Console
 open Todo
+open Todo.Utilities
 open Todo.Cli.Utilities
-            
-/// <summary>
-/// Parses the array of CLI arguments.
-/// </summary>
-let internal parse (argv: string array) : Result<ParseResults<DeleteArguments>, Exception> =
+
+let internal parseArgv (argv: string array) : Result<ParseResults<DeleteArguments>, Exception> =
     let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> Some ConsoleColor.Red)
     let parser = ArgumentParser.Create<DeleteArguments>(errorHandler = errorHandler)
     
@@ -24,42 +22,39 @@ let internal parse (argv: string array) : Result<ParseResults<DeleteArguments>, 
         | :? ArguParseException as ex -> Error ex
         | ex -> Error ex
         
-/// <summary>
-/// Attempts to <b>delete</b> the specified item from the given arguments. Returns an exception, or the updated list of
-/// item groups.
-/// </summary>
-/// <param name="appData">The current state/data of the application.</param>
-/// <param name="parseResults">Results of parsing the CLI arguments.</param>
-let internal delete (appData: AppData) (parseResults: ParseResults<DeleteArguments>) : Result<ItemGroup list, Exception> =
+let private deleteItemGroup (appData: AppData) (parseResults: ParseResults<DeleteItemGroupArguments>) : Result<ItemGroup list, Exception> =
     let tempRootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
     
-    let modifyResult = 
-        match parseResults.TryGetResult DeleteArguments.Item_Group with
-        | Some itemGroupParseResults -> // Delete an item group
-            let unprocessedPath = itemGroupParseResults.GetResult DeleteItemGroupArguments.Path
-            let toDelete = unprocessedPath |> List.rev |> List.head
-            let path = unprocessedPath |> List.rev |> List.tail |> List.rev
-            
-            let modify = ItemGroup.RemoveItemGroup toDelete
-            ItemGroup.Modify tempRootItemGroup modify path
-        | None -> // Delete an item
-            let itemParseResults = parseResults.GetResult DeleteArguments.Item
-            let unprocessedPath = itemParseResults.GetResult DeleteItemArguments.Path
-            let toDelete = unprocessedPath |> List.rev |> List.head
-            let path = unprocessedPath |> List.rev |> List.tail |> List.rev
-            
-            let modify = ItemGroup.RemoveItem toDelete
-            ItemGroup.Modify tempRootItemGroup modify path
-        
-    Result.bind (fun itemGroup -> Ok itemGroup.SubItemGroups) modifyResult // get modified sub-item groups if ok 
+    result {
+        let (toDelete, path) = splitLast (parseResults.GetResult DeleteItemGroupArguments.Path) 
+        let modify = ItemGroup.RemoveItemGroup toDelete 
+        let! newRootItemGroup = ItemGroup.Modify tempRootItemGroup modify path 
+        return! (fun itemGroup -> Ok itemGroup.SubItemGroups) newRootItemGroup
+    }
     
-/// <summary>
-/// Update the current application state/data with new new list of item groups.
-/// </summary>
-/// <param name="appData">The current state/data of the application.</param>
-/// <param name="newItemGroups">The new list of item groups.</param>
-let internal update (appData: AppData) (newItemGroups: ItemGroup list) : Result<AppData, Exception> =
-    Ok { appData with ItemGroups = newItemGroups }
+let private deleteItem (appData: AppData) (parseResults: ParseResults<DeleteItemArguments>) : Result<ItemGroup list, Exception> =
+    let tempRootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
+    
+    result {
+        let (toDelete, path) = splitLast (parseResults.GetResult DeleteItemArguments.Path) 
+        let modify = ItemGroup.RemoveItem toDelete 
+        let! newRootItemGroup = ItemGroup.Modify tempRootItemGroup modify path 
+        return! (fun itemGroup -> Ok itemGroup.SubItemGroups) newRootItemGroup
+    }
+        
+let private updateAppData (appData: AppData) (parseResults: ParseResults<DeleteArguments>) : Result<AppData, Exception> =
+    result {
+        let toDelete = List.head (parseResults.GetAllResults())
+        
+        match toDelete with
+        | Item_Group innerParseResults ->
+            let! newItemGroups = deleteItemGroup appData innerParseResults
+            return { appData with ItemGroups = newItemGroups }
+            
+        | Item innerParseResults ->
+            let! newItemGroups = deleteItem appData innerParseResults
+            return { appData with ItemGroups = newItemGroups }
+    }
         
 /// <summary>
 /// Implements the logic for the 'delete' command.
@@ -70,9 +65,8 @@ let execute (argv: string array) : AppData =
     
     let deletionResult = 
         result {
-            let! parsedArgs = parse argv
-            let! newItemGroups = delete appData parsedArgs
-            return! update appData newItemGroups
+            let! parsedArgs = parseArgv argv
+            return! updateAppData appData parsedArgs
         }
         
     match deletionResult with

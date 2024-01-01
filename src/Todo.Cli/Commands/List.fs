@@ -10,27 +10,20 @@ open FsToolkit.ErrorHandling
 open Todo
 open Todo.Cli.Utilities
 
-/// <summary>
-/// Displays the current configuration of the item groups.
-/// </summary>
-let private print (appData: AppData) =
+let private printItemGroups (itemGroups: ItemGroup list) =
     AnsiConsole.Clear()
         
-    appData.ItemGroups
+    itemGroups
     |> List.map (fun itemGroup -> itemGroup.ToString()) 
     |> List.map (fun str -> AnsiConsole.MarkupLine($"%s{str}")) 
     |> ignore
     
-/// <summary>
-/// Displays the current configuration of the item groups. <b>Is Interactive.</b>
-/// </summary>
-//
 // ** remarks **
 // Interactive display <b>CAN</b> change app data. Normally, commands that change data just return updated app data, and
 // the saving is delegated elsewhere. The <b>command</b> itself is configured such that it does not change any data,
 // however this specific function does. To work around this, we get the updated app data, and then explicitly save the
 // new app data here. 
-let private interactive (appData: AppData) : Result<AppData, Exception> =
+let private interactiveSession (appData: AppData) : Result<AppData, Exception> =
     AnsiConsole.Clear()
     AnsiConsole.MarkupLine("[red]Interactive functionality to be implemented soon.[/]")
     
@@ -40,20 +33,8 @@ let private interactive (appData: AppData) : Result<AppData, Exception> =
     |> ignore
     
     Ok appData
-            
-/// <summary>
-/// Saves the provided app data.
-/// </summary>
-/// <param name="newAppData">The app data to save.</param>
-let private update (newAppData: AppData) : Result<unit, Exception> =
-    match Files.saveAppData Files.filePath newAppData with
-    | Ok _ -> Ok () 
-    | Error err -> Error err 
 
-/// <summary>
-/// Parses the array of CLI arguments.
-/// </summary>
-let internal parse (argv: string array) : Result<ParseResults<ListArguments>, Exception> =
+let private parseArgv (argv: string array) : Result<ParseResults<ListArguments>, Exception> =
     let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> Some ConsoleColor.Red)
     let parser = ArgumentParser.Create<ListArguments>(errorHandler = errorHandler)
     
@@ -64,14 +45,14 @@ let internal parse (argv: string array) : Result<ParseResults<ListArguments>, Ex
         | :? ArguParseException as ex -> Error ex
         | ex -> Error ex
         
-let internal display (appData: AppData) (parseResults: ParseResults<ListArguments>) : Result<unit, Exception> =
+let private display (appData: AppData) (parseResults: ParseResults<ListArguments>) : Result<unit, Exception> =
     match parseResults.TryGetResult ListArguments.Interactive with
     | Some _ ->
         Ok appData
-        |> Result.bind interactive // result of interactive actions
-        |> Result.bind update // result of saving
+        |> Result.bind interactiveSession      // result of interactive actions
+        |> Result.bind (Files.saveAppData Files.filePath) 
     | None ->
-        print appData
+        printItemGroups appData.ItemGroups 
         Ok ()
         
 /// <summary>
@@ -82,7 +63,7 @@ let execute (argv: string array) : unit =
     let displayResult = 
         result {
             let appData = match Files.loadAppData Files.filePath with | Ok appData -> appData | Error err -> raise err
-            let! parsedArgs = parse argv
+            let! parsedArgs = parseArgv argv
             return! display appData parsedArgs
         }
     

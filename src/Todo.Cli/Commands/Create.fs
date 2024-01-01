@@ -10,13 +10,7 @@ open FsToolkit.ErrorHandling
 open Todo
 open Todo.Cli.Utilities
 
-// Adds the specified item group to item group config in the appdata.
-// Returns the newly modified item group list.
-let private createItemGroup
-    (appData: AppData)
-    (parseResults: ParseResults<CreateItemGroupArguments>)
-    : Result<ItemGroup list, Exception> =
-    
+let private createItemGroup (appData: AppData) (parseResults: ParseResults<CreateItemGroupArguments>) : Result<ItemGroup list, Exception> =
     let newItemGroup = CreateItemGroupArguments.ToItemGroup parseResults 
     let tempRootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
     let path = parseResults.GetResult CreateItemGroupArguments.Path
@@ -27,13 +21,7 @@ let private createItemGroup
         return! (fun rootItemGroup -> Ok rootItemGroup.SubItemGroups) newRootItemGroup  // get the sub-item groups
     }
     
-// Adds the specified item to the item group config in the appdata.
-// Returns the newly modified item group list.
-let private createItem
-    (appData: AppData)
-    (parseResults: ParseResults<CreateItemArguments>)
-    : Result<ItemGroup list, Exception> =
-
+let private createItem (appData: AppData) (parseResults: ParseResults<CreateItemArguments>) : Result<ItemGroup list, Exception> =
     let newItem = CreateItemArguments.ToItem parseResults 
     let tempRootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
     let path = parseResults.GetResult CreateItemArguments.Path
@@ -44,22 +32,13 @@ let private createItem
         return! (fun rootItemGroup -> Ok rootItemGroup.SubItemGroups) newRootItemGroup  // get the sub-item groups
     }
     
-// Adds the specified label to the current list of labels in the appdata.
-// Returns the newly modified labels list.
-let private createLabel
-    (appData: AppData)
-    (parseResults: ParseResults<CreateLabelArguments>)
-    : Result<Label list, Exception> =
-    
+let private createLabel (appData: AppData) (parseResults: ParseResults<CreateLabelArguments>) : Result<Label list, Exception> =
     result {
         let! newLabel = CreateLabelArguments.ToLabel parseResults
         return! (fun label -> Ok (label :: appData.Labels)) newLabel
     }
 
-/// <summary>
-/// Parses the array of CLI arguments.
-/// </summary>
-let internal parse (argv: string array) : Result<ParseResults<CreateArguments>, Exception> =
+let private parseArgv (argv: string array) : Result<ParseResults<CreateArguments>, Exception> =
     let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> Some ConsoleColor.Red)
     let parser = ArgumentParser.Create<CreateArguments>(errorHandler = errorHandler)
     
@@ -70,13 +49,7 @@ let internal parse (argv: string array) : Result<ParseResults<CreateArguments>, 
         | :? ArguParseException as ex -> Error ex
         | ex -> Error ex
         
-/// <summary>
-/// Attempts to create the specified item from the given arguments. Returns an exception, or the updated list of item
-/// groups.
-/// </summary>
-/// <param name="appData">The current state/data of the application.</param>
-/// <param name="parseResults">Results of parsing the CLI arguments.</param>
-let internal update (appData: AppData) (parseResults: ParseResults<CreateArguments>) : Result<AppData, Exception> =
+let private updateAppData (appData: AppData) (parseResults: ParseResults<CreateArguments>) : Result<AppData, Exception> =
     result {
         let toCreate = List.head (parseResults.GetAllResults())
         
@@ -105,8 +78,8 @@ let execute (argv: string array) : AppData =
     // perform the modification
     let updateResult = 
         result {
-            let! parseResults = parse argv
-            return! update appData parseResults
+            let! parseResults = parseArgv argv
+            return! updateAppData appData parseResults
         }
         
     // process the result
