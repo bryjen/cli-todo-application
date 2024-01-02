@@ -13,20 +13,27 @@ type LabelArguments =
             | Add _ -> "Adds a label to an item group"
             | Remove _ -> "Removes a label from an item group"
 
+
+type ItemGroupArguments =
+    | [<Last; CliPrefix(CliPrefix.None)>] Label of ParseResults<LabelArguments>
+    | [<Last>] Name of newName:string 
+    | [<Last>] Description of newDesc:string 
+    | [<Unique; Mandatory; AltCommandLine("-p")>] Path of path:string list
+    
+    interface IArgParserTemplate with
+        member this.Usage =
+            match this with
+            | Label _ -> "Subcommand to either 'add' or 'remove' a label from an item group."
+            | Name _ -> "Subcommand change the name of an item group."
+            | Description _ -> "Subcommand change the description of an item group."
+            | Path _ -> "The path of the item group"
+
+
+[<CliPrefix(CliPrefix.None)>]
 type EditArguments =
-    | [<CliPrefix(CliPrefix.None)>] Item_Group of ParseResults<ItemGroupArguments>
+    | Item_Group of ParseResults<ItemGroupArguments>
     
     interface IArgParserTemplate with
         member this.Usage =
             match this with
             | Item_Group _ -> "Edit an item group."
-            
-and ItemGroupArguments =
-    | [<Unique; Mandatory; AltCommandLine("-p")>] Path of path:string list
-    | Label of ParseResults<LabelArguments>
-    
-    interface IArgParserTemplate with
-        member this.Usage =
-            match this with
-            | Path _ -> "The path of the item group"
-            | Label _ -> "Subcommand to either 'add' or 'remove' a label from an item group."

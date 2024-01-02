@@ -29,8 +29,29 @@ let private removeLabel (appData: AppData) (path: string list) (labelName: strin
         let! newRootItemGroup = ItemGroup.Modify tempRootItemGroup modify path
         return newRootItemGroup.SubItemGroups
     }
+    
+let private renameItemGroup
+    (appData: AppData)
+    (path: string list)
+    (subItemGroupName: string)
+    (newName: string)
+    : Result<ItemGroup list, Exception> =
+    result {
+        let tempRootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
+        let modify = ItemGroup.RenameSubItemGroup subItemGroupName newName
+        let! newRootItemGroup = ItemGroup.Modify tempRootItemGroup modify path 
+        return newRootItemGroup.SubItemGroups
+    }
 
-let private editItemGroupLabel
+let private changeDescription (appData: AppData) (path: string list) (newDescription: string) : Result<ItemGroup list, Exception> =
+    result {
+        let tempRootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
+        let modify = ItemGroup.ChangeDescription newDescription 
+        let! newRootItemGroup = ItemGroup.Modify tempRootItemGroup modify path 
+        return newRootItemGroup.SubItemGroups
+    }
+    
+let internal editItemGroupLabel
     (appData: AppData)
     (path: string list)
     (parseResults: ParseResults<LabelArguments>)
@@ -58,6 +79,12 @@ let internal editItemGroup
         | Label innerParseResults ->
             let path = parseResults.GetResult ItemGroupArguments.Path
             return! editItemGroupLabel appData path innerParseResults
+        | Name newName ->
+            let (itemGroupName, path) = Todo.Utilities.List.splitLast (parseResults.GetResult ItemGroupArguments.Path)
+            return! renameItemGroup appData path itemGroupName newName
+        | Description newDescription ->
+            let path = parseResults.GetResult ItemGroupArguments.Path
+            return! changeDescription appData path newDescription
         | _ ->
             failwith (sprintf $"oopsie: %A{parseResults.GetAllResults()}") |> ignore
             return appData.ItemGroups

@@ -36,8 +36,7 @@ let printitemgroup (itemGroup: ItemGroup) = printmkup (sprintf $"%s{itemGroup.To
 let testLabelResult = Label.CreateFromString "project" "purple"
 let testLabel = testLabelResult |> Result.toList |> List.head
 
-let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> Some ConsoleColor.Red)
-let parser = ArgumentParser.Create<EditArguments>(errorHandler = errorHandler)
+let parser = ArgumentParser.Create<EditArguments>()
 
 
 // Wraps user commands 

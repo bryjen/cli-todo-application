@@ -1,12 +1,11 @@
 ﻿namespace Todo
 
 open System
-open Spectre.Console
 
 [<AutoOpen>]
 type Label =
     { Name: string 
-      Color: Spectre.Console.Color }
+      ColorComponents: ColorComponent * ColorComponent * ColorComponent } // the RGB value components of the color
     
     // Character prefixed to the label.
     // Indicates to the end user that the string/token represents a label.
@@ -17,15 +16,15 @@ type Label =
     /// </summary>
     static member Default: Label =
         { Name = ""
-          Color = Color.Black }
+          ColorComponents = ColorComponent.FromColor Spectre.Console.Color.Black }
     
     /// <summary>
     /// Attempts to create a <c>Label</c> record.
     /// </summary>
     /// <param name="name">The name of the label.</param>
     /// <param name="color">The color of the label.</param>
-    static member Create (name: string) (color: Color) : Label =
-        { Name = name; Color = color }
+    static member Create (name: string) (color: Spectre.Console.Color) : Label =
+        { Name = name; ColorComponents = ColorComponent.FromColor color }
         
     /// <summary>
     /// Attempts to create a <c>Label</c> record from a color name as string.
@@ -37,7 +36,7 @@ type Label =
         let asColorOption = ColorTable.tryParseFromString simplifiedColorName
         
         match asColorOption with
-        | Some color -> Ok { Name = name; Color = color } 
+        | Some color -> Ok { Name = name; ColorComponents = ColorComponent.FromColor color } 
         | None -> Error (Exception(sprintf $"Unknown color: %s{colorName}"))
         
     static member FormatLabels (labels: Label list) : string =
@@ -50,4 +49,19 @@ type Label =
     /// Returns the label with <c>Spectre.Console</c> markups.
     /// </summary>
     override this.ToString () : string =
-        sprintf "[%s]%c%s[/]" (this.Color.ToMarkup()) Label.Symbol this.Name
+        let (r, g, b) = this.ColorComponents
+        sprintf "[%s]%c%s[/]" ((ColorComponent.ToColor r g b).ToMarkup()) Label.Symbol this.Name
+        
+        
+and ColorComponent =
+    { Value: byte }
+    
+    static member Min: ColorComponent = { Value = byte 0 }
+    
+    static member Max: ColorComponent = { Value = byte 0 }
+    
+    static member FromColor (color: Spectre.Console.Color) : ColorComponent * ColorComponent * ColorComponent =
+        ({ Value = color.R }, { Value = color.G }, { Value = color.B })
+        
+    static member ToColor (R: ColorComponent) (G: ColorComponent) (B: ColorComponent) : Spectre.Console.Color =
+        Spectre.Console.Color(R.Value, G.Value, B.Value)

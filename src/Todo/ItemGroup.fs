@@ -50,14 +50,21 @@ type ItemGroup =
     
         formatItemGroup this 0
         
-    // Replaces the base item group's sub item groups with the replacement (if they have the same name).
-    static member private ReplaceSubItemGroup (baseItemGroup: ItemGroup) (replacement: ItemGroup) : ItemGroup =
-        let newSubItemGroups =
-            baseItemGroup.SubItemGroups
-            |> List.map (fun itemGroup -> if itemGroup.Name = replacement.Name then replacement else itemGroup)
+    // Replaces the base item group's sub item groups with the replacement (If their name matches the IDENTIFIER).
+    static member private ReplaceSubItemGroupByIdentifier
+        (baseItemGroup: ItemGroup)
+        (replacement: ItemGroup)
+        (identifier: string)
+        : ItemGroup =
             
+        let replacementFunction = (fun itemGroup -> if itemGroup.Name = identifier then replacement else itemGroup)
+        let newSubItemGroups = List.map replacementFunction baseItemGroup.SubItemGroups
         { baseItemGroup with SubItemGroups = newSubItemGroups }
-            
+        
+    // Replaces the base item group's sub item groups with the replacement (If they have the SAME NAME).
+    static member private ReplaceSubItemGroup (baseItemGroup: ItemGroup) (replacement: ItemGroup) : ItemGroup =
+        ReplaceSubItemGroupByIdentifier baseItemGroup replacement replacement.Name 
+    
     // Recursively locates a specified (sub) item group.
     static member private Locate (baseItemGroup: ItemGroup) (path: string list) : Result<ItemGroup, Exception> =
         match path with
@@ -183,7 +190,38 @@ type ItemGroup =
         match (List.length newLabels) = (List.length baseItemGroup.Labels) with
         | true -> Error (Exception(sprintf $"Could not find label with the name \"%s{name}\""))
         | false -> Ok { baseItemGroup with Labels = newLabels }
-    
+        
+    /// <summary>
+    /// Attempts to rename a specified sub item group.
+    /// </summary>
+    /// <param name="subItemGroupName">The name of the sub item group to replace.</param>
+    /// <param name="newName">The new name of the sub item group.</param>
+    /// <param name="baseItemGroup">The item group to be modified.</param>
+    static member RenameSubItemGroup
+        (subItemGroupName: string)
+        (newName: string)
+        (baseItemGroup: ItemGroup)
+        : Result<ItemGroup, Exception> =
+            
+        (* Note that we do not change the name of the base item group itself because since the replacement algorithm
+           in 'Locate' and 'Update' that the modified item group has the same name - otherwise they break. *)
+        
+        match List.tryFind (fun itemGroup -> itemGroup.Name = subItemGroupName) baseItemGroup.SubItemGroups with
+        | Some itemGroup ->
+            let oldName = itemGroup.Name
+            let newItemGroup = { itemGroup with Name = newName }
+            Ok (ReplaceSubItemGroupByIdentifier baseItemGroup newItemGroup oldName)
+        | None ->
+            Error (Exception(sprintf $"Could not find the sub item group \"%s{subItemGroupName}\""))
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="newDescription"></param>
+    /// <param name="baseItemGroup"></param>
+    static member ChangeDescription (newDescription: string) (baseItemGroup: ItemGroup) : Result<ItemGroup, Exception> =
+        Ok { baseItemGroup with Description = Some newDescription }
+        
         
         
 and Item =
