@@ -1,4 +1,4 @@
-﻿namespace Todo.Cli.Commands
+﻿namespace Todo.Cli.Commands.Arguments
 
 open Argu
 

@@ -10,6 +10,7 @@ let commandConfigs = [
     List.config
     Create.config
     Delete.config
+    Edit.config
 ]
 
 [<EntryPoint>]

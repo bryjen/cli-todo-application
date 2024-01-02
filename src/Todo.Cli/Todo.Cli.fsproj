@@ -9,13 +9,14 @@
     <ItemGroup>
         <Compile Include="Utilities\Files.fs" />
         <Compile Include="Utilities\Arguments.fs" />
-        <Compile Include="Commands\ListArguments.fs" />
+        <Compile Include="Commands\List.Arguments.fs" />
         <Compile Include="Commands\List.fs" />
-        <Compile Include="Commands\CreateArguments.fs" />
+        <Compile Include="Commands\Create.Arguments.fs" />
         <Compile Include="Commands\Create.fs" />
-        <Compile Include="Commands\DeleteArguments.fs" />
+        <Compile Include="Commands\Delete.Arguments.fs" />
         <Compile Include="Commands\Delete.fs" />
-        <Compile Include="Commands\EditArguments.fs" />
+        <Compile Include="Commands\Edit.Arguments.fs" />
+        <Compile Include="Commands\Edit.ItemGroup.fs" />
         <Compile Include="Commands\Edit.fs" />
         <Compile Include="Commands\Help.fs" />
         <Compile Include="Program.fs" />

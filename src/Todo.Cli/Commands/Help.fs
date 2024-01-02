@@ -16,6 +16,7 @@ let private commandConfigs = [
     List.config
     Create.config
     Delete.config
+    Edit.config
     tempHelpConfig
 ]
     

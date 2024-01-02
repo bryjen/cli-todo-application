@@ -6,11 +6,12 @@
 
 open System
 open Spectre.Console
+open Argu
 
 open Todo
 open Todo.Cli.Commands
+open Todo.Cli.Commands.Arguments
 open Todo.Cli.Utilities
-
 
 // Other
 let fromresult<'T, 'Error> (someResult: Result<'T, 'Error>) = someResult |> Result.toList |> List.head   
@@ -24,13 +25,19 @@ let appdata = loadappdata () |> Result.toList |> List.head
 let rootitemgroup = { ItemGroup.Default with SubItemGroups = appdata.ItemGroups }
 
 
+
 // Wrap console functions. Makes them easier to call
 let printmkup = AnsiConsole.MarkupLine 
 let printitemgroup (itemGroup: ItemGroup) = printmkup (sprintf $"%s{itemGroup.ToString()}") 
 
+
+
 // Creating 'Label' record(s) for testing
 let testLabelResult = Label.CreateFromString "project" "purple"
 let testLabel = testLabelResult |> Result.toList |> List.head
+
+let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> Some ConsoleColor.Red)
+let parser = ArgumentParser.Create<EditArguments>(errorHandler = errorHandler)
 
 
 // Wraps user commands 
@@ -42,6 +49,9 @@ let create ([<ParamArray>] argv: string array) =
 
 let delete ([<ParamArray>] argv: string array) =
     Delete.execute argv
+    
+let edit ([<ParamArray>] argv: string array) =
+    Edit.execute argv
 
 let help ([<ParamArray>] argv: string array) =
     Help.printCommandsHelp argv

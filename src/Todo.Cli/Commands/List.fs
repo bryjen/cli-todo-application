@@ -9,6 +9,7 @@ open FsToolkit.ErrorHandling
 
 open Todo
 open Todo.Cli.Utilities
+open Todo.Cli.Commands.Arguments
 
 let private printItemGroups (itemGroups: ItemGroup list) =
     AnsiConsole.Clear()

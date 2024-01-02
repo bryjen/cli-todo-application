@@ -1,4 +1,4 @@
-﻿namespace Todo.Cli.Commands
+﻿namespace Todo.Cli.Commands.Arguments
 
 open System
 open Argu
@@ -8,7 +8,7 @@ open Todo
 /// <summary>
 /// Arguments for the 'create' command.
 /// </summary>
-type internal CreateArguments =
+type CreateArguments =
     | [<First; CliPrefix(CliPrefix.None)>] Item_Group of ParseResults<CreateItemGroupArguments>
     | [<First; CliPrefix(CliPrefix.None)>] Item of ParseResults<CreateItemArguments>
     | [<First; CliPrefix(CliPrefix.None)>] Label of ParseResults<CreateLabelArguments>
@@ -23,7 +23,7 @@ type internal CreateArguments =
     
     
 /// Arguments for the 'create item-group' subcommand
-and internal CreateItemGroupArguments =
+and CreateItemGroupArguments =
     | [<Unique; Mandatory; AltCommandLine("-n")>] Name of name:string
     | [<Unique; AltCommandLine("-d")>] Description of description:string option
     | [<Unique; Mandatory; AltCommandLine("-p")>] Path of path:string list
@@ -51,7 +51,7 @@ and internal CreateItemGroupArguments =
             
             
 /// Arguments for the 'create item' subcommand
-and internal CreateItemArguments =
+and CreateItemArguments =
     | [<Unique; Mandatory; AltCommandLine("-n")>] Name of name:string
     | [<Unique; AltCommandLine("-d")>] Description of description:string option
     | [<Unique; Mandatory; AltCommandLine("-p")>] Path of path:string list
@@ -76,7 +76,7 @@ and internal CreateItemArguments =
 
 
 /// Arguments for the 'create label' subcommand
-and internal CreateLabelArguments =
+and CreateLabelArguments =
     | [<Unique; Mandatory; AltCommandLine("-n")>] Name of name:string
     | [<Unique; Mandatory; AltCommandLine("-c")>] Color of color:string
     

@@ -10,6 +10,7 @@ open Spectre.Console
 open Todo
 open Todo.Utilities
 open Todo.Cli.Utilities
+open Todo.Cli.Commands.Arguments
 
 let internal parseArgv (argv: string array) : Result<ParseResults<DeleteArguments>, Exception> =
     let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> Some ConsoleColor.Red)
