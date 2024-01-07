@@ -9,6 +9,7 @@ open FsToolkit.ErrorHandling
 
 open Todo
 open Todo.ItemGroup
+open Todo.ItemGroup.Representations.Tree
 open Todo.Cli.Utilities
 open Todo.Cli.Commands.Arguments
 
@@ -27,12 +28,10 @@ let private printItemGroups (itemGroups: ItemGroup list) =
 // new app data here. 
 let private interactiveSession (appData: AppData) : Result<AppData, Exception> =
     AnsiConsole.Clear()
-    AnsiConsole.MarkupLine("[red]Interactive functionality to be implemented soon.[/]")
     
-    appData.ItemGroups
-    |> List.map (fun itemGroup -> itemGroup.ToString()) 
-    |> List.map (fun str -> AnsiConsole.MarkupLine($"%s{str}")) 
-    |> ignore
+    let rootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
+    let converter = Converter.PrettyTree.toLines 
+    Interactive.treeInteractive rootItemGroup converter |> ignore 
     
     Ok appData
 

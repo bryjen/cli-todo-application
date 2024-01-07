@@ -1,5 +1,4 @@
 ﻿// ReSharper disable CheckNamespace
-
 using Spectre.Console.Rendering;
 
 namespace Spectre.Console.Prompts.Extensions;
@@ -9,7 +8,7 @@ using System.Reflection;
 // Exposes some of the internal functions/method from 'Spectre.Console.AnsiBuilder'
 // The class is mainly responsible for rendering objects into the console.
 
-internal static class AnsiBuilder
+public static class AnsiBuilder
 {
     private static readonly MethodInfo BuildFunction;
 
@@ -40,6 +39,10 @@ internal static class AnsiBuilder
     /// <summary>
     /// Renders an <c>IRenderable</c> into a string that can be printed to the console. 
     /// </summary>
+    /// <remarks>
+    /// Basically a wrapper function to Spectre.Console's AnsiBuilder.Build(IAnsiConsole, IRenderable) method.
+    /// </remarks>
+    /// https://github.com/spectreconsole/spectre.console/blob/main/src/Spectre.Console/Internal/Backends/Ansi/AnsiBuilder.cs
     public static string Build(IAnsiConsole console, IRenderable renderable)
     {
         string? result = BuildFunction.Invoke(null, new object[] { console, renderable }) as string;
@@ -51,5 +54,17 @@ internal static class AnsiBuilder
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Renders an <c>IRenderable</c> into a string, and then split it into lines. 
+    /// </summary>
+    public static IEnumerable<string> BuildLines(IAnsiConsole console, IRenderable renderable)
+    {
+        string result = Build(console, renderable);
+        
+        return result
+            .Split('\n')
+            .Select(line => line.Replace("\r", ""));
     }
 }

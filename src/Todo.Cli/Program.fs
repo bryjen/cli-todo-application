@@ -29,10 +29,8 @@ let rec main argv =
     let filePath = Files.filePath
     let appdata = Files.loadAppData filePath  |> Result.toList |> List.head
     let rootitemgroup = { ItemGroup.Default with SubItemGroups = appdata.ItemGroups }
-    let asTree = Converter.toTree rootitemgroup
-    let selectionPrompt = TreeSelectionPrompt.ToSelectionPrompt(AnsiConsole.Console, asTree)
-    let choice = selectionPrompt.Show(AnsiConsole.Console)
-    printfn "%s" choice
+    
+    let pairs = Converter.PrettyTree.pairLinesWithObject rootitemgroup
     
     Console.ReadLine() |> ignore 
 #endif
