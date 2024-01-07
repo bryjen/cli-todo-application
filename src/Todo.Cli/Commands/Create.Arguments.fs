@@ -3,7 +3,7 @@
 open System
 open Argu
 
-open Todo
+open Todo.ItemGroup
 
 /// <summary>
 /// Arguments for the 'create' command.

@@ -8,6 +8,7 @@ open Argu
 open FsToolkit.ErrorHandling
 
 open Todo
+open Todo.ItemGroup
 open Todo.Cli.Utilities
 open Todo.Cli.Commands.Arguments
 
@@ -35,9 +36,9 @@ let private interactiveSession (appData: AppData) : Result<AppData, Exception> =
     
     Ok appData
 
-let private parseArgv (argv: string array) : Result<ParseResults<ListArguments>, Exception> =
+let private parseArgv (argv: string array) : Result<ParseResults<ViewArguments>, Exception> =
     let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> Some ConsoleColor.Red)
-    let parser = ArgumentParser.Create<ListArguments>(errorHandler = errorHandler)
+    let parser = ArgumentParser.Create<ViewArguments>(errorHandler = errorHandler)
     
     try
         let parsedArgs = parser.Parse argv
@@ -46,8 +47,8 @@ let private parseArgv (argv: string array) : Result<ParseResults<ListArguments>,
         | :? ArguParseException as ex -> Error ex
         | ex -> Error ex
         
-let private display (appData: AppData) (parseResults: ParseResults<ListArguments>) : Result<unit, Exception> =
-    match parseResults.TryGetResult ListArguments.Interactive with
+let private display (appData: AppData) (parseResults: ParseResults<ViewArguments>) : Result<unit, Exception> =
+    match parseResults.TryGetResult ViewArguments.Interactive with
     | Some _ ->
         Ok appData
         |> Result.bind interactiveSession      // result of interactive actions
@@ -76,6 +77,6 @@ let execute (argv: string array) : unit =
         ()
         
 let config : Command.Config =
-    { Command = "list"
+    { Command = "view"
       Help = "Displays the current todos." 
       Function = CommandFunction.NoDataChange execute }

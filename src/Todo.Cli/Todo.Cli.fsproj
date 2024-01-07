@@ -4,13 +4,14 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
         <AssemblyName>todos</AssemblyName>
+        <DefineConstants>Debug</DefineConstants>
     </PropertyGroup>
 
     <ItemGroup>
         <Compile Include="Utilities\Files.fs" />
         <Compile Include="Utilities\Arguments.fs" />
-        <Compile Include="Commands\List.Arguments.fs" />
-        <Compile Include="Commands\List.fs" />
+        <Compile Include="Commands\View.Arguments.fs" />
+        <Compile Include="Commands\View.fs" />
         <Compile Include="Commands\Create.Arguments.fs" />
         <Compile Include="Commands\Create.fs" />
         <Compile Include="Commands\Delete.Arguments.fs" />
@@ -23,6 +24,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Spectre.Console.Prompts.Extensions\Spectre.Console.Prompts.Extensions.csproj" />
         <ProjectReference Include="..\Todo\Todo.fsproj" />
     </ItemGroup>
 

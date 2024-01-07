@@ -8,6 +8,7 @@ open Spectre.Console
 open FsToolkit.ErrorHandling
 
 open Todo
+open Todo.ItemGroup
 open Todo.Cli.Utilities
 open Todo.Cli.Commands.Arguments
 

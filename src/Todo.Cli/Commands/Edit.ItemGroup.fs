@@ -5,6 +5,7 @@ open Argu
 open FsToolkit.ErrorHandling
 
 open Todo
+open Todo.ItemGroup
 open Todo.Cli.Commands
 open Todo.Cli.Commands.Arguments
 

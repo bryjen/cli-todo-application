@@ -5,9 +5,10 @@ module Todo.Cli.Commands.Delete
 open System
 open Argu
 open FsToolkit.ErrorHandling
-
 open Spectre.Console
+
 open Todo
+open Todo.ItemGroup
 open Todo.Utilities
 open Todo.Cli.Utilities
 open Todo.Cli.Commands.Arguments

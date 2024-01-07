@@ -5,7 +5,7 @@ open Argu
 /// <summary>
 /// Arguments for the 'list' command 
 /// </summary>
-type ListArguments =
+type ViewArguments =
     | [<AltCommandLine("-i")>] Interactive
     
     interface IArgParserTemplate with

@@ -1,6 +1,8 @@
-﻿namespace Todo
+﻿namespace Todo.ItemGroup
 
 open System
+
+open Todo
 
 [<AutoOpen>]
 type Label =

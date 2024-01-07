@@ -1,5 +1,6 @@
 ﻿namespace Todo
 
+open Todo.ItemGroup
 
 /// Record type containing program and user data
 type AppData =

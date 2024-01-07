@@ -11,6 +11,8 @@ src/Todo/bin
 src/Todo/obj
 src/Todo.Cli/bin
 src/Todo.Cli/obj
+src/Spectre.Console.Prompts.Extensions/bin
+src/Spectre.Console.Prompts.Extensions/obj
 
 # /tests
 tests/Todo.Tests/bin

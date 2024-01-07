@@ -9,6 +9,7 @@ open Spectre.Console
 open Argu
 
 open Todo
+open Todo.ItemGroup 
 open Todo.Cli.Commands
 open Todo.Cli.Commands.Arguments
 open Todo.Cli.Utilities
