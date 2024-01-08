@@ -7,6 +7,7 @@ open FsToolkit.ErrorHandling
 [<AutoOpen>]
 type ItemGroup =
     { Name: string
+      Path: string
       Description: string option
       SubItemGroups: ItemGroup list
       Items: Item list
@@ -17,6 +18,7 @@ type ItemGroup =
     /// </summary>
     static member Default =
         { Name = ""
+          Path = ""
           Description = None
           SubItemGroups = List.empty
           Items = List.empty

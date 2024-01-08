@@ -14,8 +14,8 @@ open Todo.Cli.Commands.Arguments
 
 let private createItemGroup (appData: AppData) (parseResults: ParseResults<CreateItemGroupArguments>) : Result<ItemGroup list, Exception> =
     let newItemGroup = CreateItemGroupArguments.ToItemGroup parseResults 
-    let tempRootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
     let path = parseResults.GetResult CreateItemGroupArguments.Path
+    let tempRootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups; Path = String.concat "/" path }
     
     result {
         let modify = ItemGroup.AddItemGroup newItemGroup

@@ -31,7 +31,7 @@ let private interactiveSession (appData: AppData) : Result<AppData, Exception> =
     
     let rootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
     let converter = Converter.PrettyTree.toLines 
-    Interactive.treeInteractive rootItemGroup converter |> ignore 
+    Interactive.treeInteractive rootItemGroup converter |> ignore
     
     Ok appData
 
