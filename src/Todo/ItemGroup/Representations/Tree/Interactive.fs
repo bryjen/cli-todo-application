@@ -5,8 +5,48 @@ open Spectre.Console
 
 open Spectre.Console.Prompts.Extensions
 open Todo.ItemGroup
+open Todo.Utilities
 
 module Interactive =
+    
+    // TODO: Proof of concept, fully flesh out
+    let viewItem (item: Item) : unit =
+        let title = Rule("Viewing an [blue]Todo[/]")
+        AnsiConsole.Write(title)
+        
+        let table = Table()
+        table.Caption <- TableTitle("Press 'ENTER' to continue")
+        table.ShowHeaders <- false
+        
+        // Adds headers, no text since they aren't shown anyways 
+        table.AddColumn("") |> ignore
+        table.AddColumn("{}") |> ignore
+      
+        // Row about the item's "name" 
+        table.AddRow("Name", $"{item.Name}") |> ignore 
+        table.AddEmptyRow() |> ignore
+        
+        // Row about the item's "description" 
+        let descriptionText = match item.Description with | Some desc -> desc | None -> "[grey]No description provided[/]"
+        table.AddRow("Description", descriptionText) |> ignore
+        table.AddEmptyRow() |> ignore
+        
+        // Row about the item's "labels" 
+        let formattedLabels = Label.FormatLabels item.Labels
+        let labelsText = match String.IsNullOrWhiteSpace formattedLabels with
+                         | true -> "[grey]Item has no labels[/]"
+                         | false -> formattedLabels
+        table.AddRow("Labels", labelsText) |> ignore
+        table.AddEmptyRow() |> ignore
+        
+        // Row about the item's "due date" 
+        let dueDateText = Item.GetFormattedDueDate item 
+        table.AddRow("Due date", "[red]" + dueDateText + "[/]") |> ignore
+        
+        // Alignment and rendering/writing
+        let tableAligned = Align(table, HorizontalAlignment.Center, VerticalAlignment.Middle)
+        AnsiConsole.Write(tableAligned)
+        ()
     
     // TODO: Proof of concept, fully flesh out
     let viewItemGroup (itemGroup: ItemGroup) : unit =
@@ -50,7 +90,7 @@ module Interactive =
         let rightMarkupText = Markup($"Sub- item groups:\n\n{subItemGroupsText}")
         let rightPanel = Panel(Align.Left(rightMarkupText, VerticalAlignment.Top))
         rightPanel.Expand <- true
-        layout["Right"].Update(rightPanel) |> ignore
+        layout["Right"].Update(rightPanel) |> ignore 
         
         AnsiConsole.Write(layout)
         ()
@@ -65,8 +105,11 @@ module Interactive =
         let selectedObject = selectionPrompt.Show(AnsiConsole.Console) 
             
         match selectedObject with
-        | Item _ -> printfn "You selected an item!"
-        | ItemGroup itemGroup -> viewItemGroup itemGroup
+        | Item item ->
+            viewItem item 
+        | ItemGroup itemGroup ->
+            viewItemGroup itemGroup
+            
         System.Console.ReadLine() |> ignore 
             
         rootItemGroup

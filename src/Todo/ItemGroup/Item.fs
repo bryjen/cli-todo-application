@@ -16,10 +16,10 @@ type Item =
           DueDate = DueDate.DateDue DateTime.MinValue 
           Labels = List.empty }
         
+    static member GetFormattedDueDate (item: Item) =
+        match item.DueDate with
+        | DateDue dateTime ->  Date.getDaysRemainingAsString dateTime 
+        | WeekDue week -> Week.getWeeksRemainingAsString week 
+        
     override this.ToString () =
-        let dueDateFormatted =
-            match this.DueDate with
-            | DateDue dateTime ->  Date.getDaysRemainingAsString dateTime 
-            | WeekDue week -> Week.getWeeksRemainingAsString week 
-            
-        sprintf $"[red]%s{dueDateFormatted}[/] %s{this.Name}"
+        sprintf $"[red]%s{Item.GetFormattedDueDate this}[/] %s{this.Name}"
