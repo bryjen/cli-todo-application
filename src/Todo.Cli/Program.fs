@@ -5,15 +5,6 @@ open Todo.Cli.Commands
 open Todo.Cli.Utilities
 open Todo.Cli.Utilities.Arguments
 
-#if Debug
-open System
-open Spectre.Console
-
-open Todo.ItemGroup
-open Todo.ItemGroup.Representations.Tree
-open Spectre.Console.Prompts.Extensions
-#endif
-
 let commandConfigs = [
     Help.config
     List.config
@@ -24,17 +15,6 @@ let commandConfigs = [
 
 [<EntryPoint>]
 let rec main argv =
-    
-#if Debug
-    let filePath = Files.filePath
-    let appdata = Files.loadAppData filePath  |> Result.toList |> List.head
-    let rootitemgroup = { ItemGroup.Default with SubItemGroups = appdata.ItemGroups }
-    
-    let pairs = Converter.PrettyTree.pairLinesWithObject rootitemgroup
-    
-    Console.ReadLine() |> ignore 
-#endif
-   
     //  Get command map 
     let commandMap = Command.CommandMap commandConfigs 
     
