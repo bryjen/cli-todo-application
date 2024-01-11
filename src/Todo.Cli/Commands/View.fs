@@ -9,7 +9,6 @@ open FsToolkit.ErrorHandling
 
 open Todo
 open Todo.ItemGroup
-open Todo.ItemGroup.Representations.Tree
 open Todo.Cli.Utilities
 open Todo.Cli.Commands.Arguments
 
@@ -30,7 +29,7 @@ let private interactiveSession (appData: AppData) : Result<AppData, Exception> =
     AnsiConsole.Clear()
     
     let rootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
-    let converter = Converter.PrettyTree.toLines 
+    let converter = Formatters.Tree.PrettyTree.toLines 
     Interactive.treeInteractive rootItemGroup converter |> ignore
     
     Ok appData

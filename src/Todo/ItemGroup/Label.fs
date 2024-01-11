@@ -13,9 +13,7 @@ type Label =
     // Indicates to the end user that the string/token represents a label.
     static member private Symbol: char = '#'
     
-    /// <summary>
     /// Default values for a <c>Label</c> record.
-    /// </summary>
     static member Default: Label =
         { Name = ""
           ColorComponents = ColorComponent.FromColor Spectre.Console.Color.Black }
@@ -41,15 +39,14 @@ type Label =
         | Some color -> Ok { Name = name; ColorComponents = ColorComponent.FromColor color } 
         | None -> Error (Exception(sprintf $"Unknown color: %s{colorName}"))
         
+    /// 
     static member FormatLabels (labels: Label list) : string =
         labels
-        |> List.map (fun label -> label.ToString())
+        |> List.map _.ToString()
         |> (fun labelStrings -> (" ", labelStrings)) // first part of tuple is the joining character
         |> String.Join 
         
-    /// <summary>
     /// Returns the label with <c>Spectre.Console</c> markups.
-    /// </summary>
     override this.ToString () : string =
         let (r, g, b) = this.ColorComponents
         sprintf "[%s]%c%s[/]" ((ColorComponent.ToColor r g b).ToMarkup()) Label.Symbol this.Name

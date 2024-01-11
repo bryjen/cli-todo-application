@@ -1,11 +1,13 @@
 ﻿namespace Todo
 
-open Microsoft.FSharp.Core
-
+/// DU indicating whether the user command changes the application data or not.
+/// A user command always takes a string array as input. 
 type CommandFunction =
-    | ChangesData of (string array -> AppData)  //  command function changes program data
-    | NoDataChange of (string array -> unit)    //  command function DOES NOT change program data 
+    | ChangesData of (string array -> AppData)
+    | NoDataChange of (string array -> unit)
 
+/// Contains the 'Config' record type which specifies details about a command that the user can call (ex. 'view',
+/// 'create', etc.). Contains additional type/methods that help with managing command configs.
 [<RequireQualifiedAccess>]
 module Command =
 

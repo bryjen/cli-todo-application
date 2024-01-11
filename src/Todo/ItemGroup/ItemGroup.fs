@@ -1,9 +1,14 @@
 ﻿namespace Todo.ItemGroup
 
 open System
-open Todo.Utilities
 open FsToolkit.ErrorHandling
 
+/// <summary>
+/// An entity that can hold tοdo items. An item group can also hold inner/sub item groups. 
+/// </summary>
+/// <remarks>
+/// When displaying to the user, it is called a '<b>tοdo</b>' group.
+/// </remarks>
 [<AutoOpen>]
 type ItemGroup =
     { Name: string
@@ -13,9 +18,7 @@ type ItemGroup =
       Items: Item list
       Labels: Label list }
     
-    /// <summary>
     /// Default values for a <c>ItemGroup</c> record.
-    /// </summary>
     static member Default =
         { Name = ""
           Path = ""
@@ -24,9 +27,7 @@ type ItemGroup =
           Items = List.empty
           Labels = List.empty }
         
-    /// <summary>
     /// Returns the string representation of the <c>ItemGroup</c> record.
-    /// </summary>
     override this.ToString () =
         let indentation (num: int) : string =
             String.replicate num "    "

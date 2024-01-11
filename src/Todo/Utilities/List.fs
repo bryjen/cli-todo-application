@@ -1,4 +1,4 @@
-﻿[<Microsoft.FSharp.Core.AutoOpen>]
+﻿[<AutoOpen>]
 module Todo.Utilities.List
 
 // ["first"; "next"; "after"; "last"] -> ("last", ["first"; "next"; "after"])

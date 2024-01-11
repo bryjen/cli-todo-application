@@ -13,19 +13,24 @@
     <ItemGroup>
         <Compile Include="Console\Console.fs" />
         <Compile Include="Console\ColorTable.fs" />
-        <Compile Include="Console\Widgets.fs" />
         <Compile Include="Utilities\List.fs" />
-        <Compile Include="Utilities\Attributes.fs" />
         <Compile Include="Utilities\Date.fs" />
+        <Compile Include="Utilities\String.fs" />
         <Compile Include="ItemGroup\Label.fs" />
         <Compile Include="ItemGroup\Item.fs" />
         <Compile Include="ItemGroup\ItemGroup.fs" />
         <Compile Include="ItemGroup\ItemOrItemGroup.fs" />
-        <Compile Include="ItemGroup\Representations\Tree\Converter.fs" />
-        <Compile Include="ItemGroup\Representations\Tree\Interactive.fs" />
-        <Folder Include="ItemGroup\Representations\Columns\" />
+        <Compile Include="ItemGroup\Utilities.fs" />
+        <Compile Include="Formatters\Item\Default.fs" />
+        <Compile Include="Formatters\ItemGroup\Default.fs" />
+        <Compile Include="Formatters\Tree.fs" />
+        <Folder Include="UI\Forms\" />
+        <Compile Include="UI\Components\Widgets.fs" />
+        <Compile Include="UI\Components\Item.fs" />
+        <Compile Include="UI\Components\ItemGroup.fs" />
         <Compile Include="Data.fs" />
         <Compile Include="Command.fs" />
+        <Compile Include="Interactive.fs" />
     </ItemGroup>
 
     <ItemGroup>
