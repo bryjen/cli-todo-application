@@ -24,10 +24,12 @@
         <Compile Include="Formatters\Item\Default.fs" />
         <Compile Include="Formatters\ItemGroup\Default.fs" />
         <Compile Include="Formatters\Tree.fs" />
-        <Folder Include="UI\Forms\" />
         <Compile Include="UI\Components\Widgets.fs" />
         <Compile Include="UI\Components\Item.fs" />
         <Compile Include="UI\Components\ItemGroup.fs" />
+        <Compile Include="UI\Forms\PathForm.fs" />
+        <Compile Include="UI\Forms\CreateItemGroupForm.fs" />
+        <Compile Include="UI\Forms\LabelSelectionForm.fs" />
         <Compile Include="Data.fs" />
         <Compile Include="Command.fs" />
         <Compile Include="Interactive.fs" />
