@@ -31,7 +31,6 @@
         <Compile Include="UI\Forms\CreateItemGroupForm.fs" />
         <Compile Include="UI\Forms\LabelSelectionForm.fs" />
         <Compile Include="Data.fs" />
-        <Compile Include="Command.fs" />
         <Compile Include="Interactive.fs" />
     </ItemGroup>
 

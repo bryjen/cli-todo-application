@@ -6,8 +6,8 @@ open System
 open Spectre.Console
 open Argu
 open FsToolkit.ErrorHandling
-
 open Todo
+open Todo.Cli
 open Todo.ItemGroup
 open Todo.Cli.Utilities
 open Todo.Cli.Commands.Arguments
@@ -16,7 +16,7 @@ let private printItemGroups (itemGroups: ItemGroup list) =
     AnsiConsole.Clear()
         
     itemGroups
-    |> List.map (fun itemGroup -> itemGroup.ToString()) 
+    |> List.map (_.ToString()) 
     |> List.map (fun str -> AnsiConsole.MarkupLine($"%s{str}")) 
     |> ignore
     
@@ -45,36 +45,44 @@ let private parseArgv (argv: string array) : Result<ParseResults<ViewArguments>,
         | :? ArguParseException as ex -> Error ex
         | ex -> Error ex
         
-let private display (appData: AppData) (parseResults: ParseResults<ViewArguments>) : Result<unit, Exception> =
+let private display (filePath: string) (appData: AppData) (parseResults: ParseResults<ViewArguments>) : Result<unit, Exception> =
     match parseResults.TryGetResult ViewArguments.Interactive with
     | Some _ ->
         Ok appData
         |> Result.bind interactiveSession      // result of interactive actions
-        |> Result.bind (Files.saveAppData Files.filePath) 
+        |> Result.bind (Files.saveAppData filePath) 
     | None ->
         printItemGroups appData.ItemGroups 
         Ok ()
         
 /// <summary>
-/// Implements the logic for the 'list' command.
+/// Returns a function that displays a view of the current todos.
 /// </summary>
-/// <param name="argv">List of arguments to be parsed.</param>
-let execute (argv: string array) : unit =
-    let displayResult = 
-        result {
-            let appData = match Files.loadAppData Files.filePath with | Ok appData -> appData | Error err -> raise err
-            let! parsedArgs = parseArgv argv
-            return! display appData parsedArgs
-        }
+/// <param name="applicationConfiguration">The application configuration.</param>
+/// <param name="appData">The application data.</param>
+let internal injectView 
+    (applicationConfiguration: ApplicationConfiguration)
+    (_: ApplicationSettings)
+    (appData: AppData)
+    : CommandFunction =
     
-    match displayResult with
-    | Ok _ ->
-        () 
-    | Error _ ->
-        // maybe print some error message
-        ()
-        
-let config : Command.Config =
-    { Command = "view"
-      Help = "Displays the current todos." 
-      Function = CommandFunction.NoDataChange execute }
+    let execute (argv: string array) : unit =
+        let displayResult = 
+            result {
+                let! parsedArgs = parseArgv argv
+                let saveFilePath = applicationConfiguration.getDataFilePath()
+                return! display saveFilePath appData parsedArgs
+            }
+            
+        match displayResult with
+        | Ok _ ->
+            () 
+        | Error ex ->
+            AnsiConsole.Write($"Error thrown on display: {ex}")
+            
+    CommandFunction.NoDataChange execute
+   
+let viewCommandTemplate : CommandTemplate =
+    { CommandName = "view"
+      HelpString = "Displays a view of the current todos."
+      InjectData = injectView }

@@ -6,10 +6,10 @@ open System
 open Argu
 open FsToolkit.ErrorHandling
 open Spectre.Console
-
 open Todo
 open Todo.ItemGroup
 open Todo.Utilities
+open Todo.Cli
 open Todo.Cli.Utilities
 open Todo.Cli.Commands.Arguments
 
@@ -59,27 +59,33 @@ let private updateAppData (appData: AppData) (parseResults: ParseResults<DeleteA
     }
         
 /// <summary>
-/// Implements the logic for the 'delete' command.
+/// Returns a function that implements the underlying logic for the 'delete' command. 
 /// </summary>
-/// <param name="argv">List of arguments to be parsed.</param>
-let execute (argv: string array) : AppData =
-    let appData = match Files.loadAppData Files.filePath with | Ok appData -> appData | Error err -> raise err
-    
-    let deletionResult = 
-        result {
-            let! parsedArgs = parseArgv argv
-            return! updateAppData appData parsedArgs
-        }
+/// <param name="appData">The application data.</param>
+let internal injectDelete 
+    (_: ApplicationConfiguration)
+    (_: ApplicationSettings)
+    (appData: AppData)
+    : CommandFunction =
         
-    match deletionResult with
-    | Ok newAppData ->
-        AnsiConsole.MarkupLine "Successfully deleted the specified item group." 
-        newAppData
-    | Error err ->
-        AnsiConsole.MarkupLine (sprintf $"Deletion failed with message: %s{err.Message}")
-        appData // return 'old' app data
+    let execute (argv: string array) : AppData =
+        let deletionResult = 
+            result {
+                let! parsedArgs = parseArgv argv
+                return! updateAppData appData parsedArgs
+            }
+            
+        match deletionResult with
+        | Ok newAppData ->
+            AnsiConsole.MarkupLine "Successfully deleted the specified item group." 
+            newAppData
+        | Error err ->
+            AnsiConsole.MarkupLine (sprintf $"Deletion failed with message: %s{err.Message}")
+            appData // return 'old' app data
+            
+    CommandFunction.ChangesData execute
     
-let config : Command.Config =
-    { Command = "delete"
-      Help = "Deletes an item/item group."
-      Function = CommandFunction.ChangesData execute}
+let deleteCommandTemplate : CommandTemplate =
+    { CommandName = "delete"
+      HelpString = "Deletes an item/item group/label."
+      InjectData = injectDelete }

@@ -2,22 +2,22 @@
 [<Microsoft.FSharp.Core.RequireQualifiedAccess>]
 module Todo.Cli.Commands.Help
 
-open Todo
 open Spectre.Console
+open Todo.Cli
 
 // The config for the 'help' command WITHOUT the actual function to execute.
 // Work around against circular dependency
-let private tempHelpConfig: Command.Config =
-    { Command = "help"
-      Help = "Prints this list of help strings for each command."
-      Function = CommandFunction.NoDataChange (fun _ -> ()) }
+let tempCommandTemplate : CommandTemplate =
+    { CommandName = "help"
+      HelpString = "Prints this list of help strings for each command."
+      InjectData = (fun _ _ _ -> CommandFunction.NoDataChange (fun _ -> ())) }
 
-let private commandConfigs = [
-    List.config
-    Create.config
-    Delete.config
-    Edit.config
-    tempHelpConfig
+let private commandConfigs : CommandTemplate list = [
+    viewCommandTemplate
+    createCommandTemplate
+    deleteCommandTemplate
+    editCommandTemplate
+    tempCommandTemplate
 ]
     
 /// <summary>
@@ -28,12 +28,12 @@ let printCommandsHelp (_: string array) : unit =
 
     let gridWithValues =
         commandConfigs
-        |> List.map (fun (config: Command.Config) -> [|config.Command; config.Help|])
+        |> List.map (fun commandTemplate -> [| commandTemplate.CommandName; commandTemplate.HelpString |])
         |> List.fold (fun (grid: Grid) (row: string array) -> grid.AddRow row) grid
     
     AnsiConsole.MarkupLine "\nApplication commands:"
     AnsiConsole.Write gridWithValues
     AnsiConsole.MarkupLine ""
     
-let config : Command.Config =
-      { tempHelpConfig with Function = CommandFunction.NoDataChange printCommandsHelp }
+let helpCommandTemplate : CommandTemplate =
+      { tempCommandTemplate with InjectData = (fun _ _ _ -> CommandFunction.NoDataChange printCommandsHelp) }

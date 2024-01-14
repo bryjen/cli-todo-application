@@ -6,34 +6,15 @@ open System.Reflection
 
 open System.Text
 open System.Text.Json
-open System.Text.Json.Serialization
 open Todo
-
-type AppConfig =
-    { DataFilesDirectory: string      //  Relative to the actual location of the executable file 
-       }
 
 module Files =
     
-    /// The directory of the executable file itself.
-    let private executableDirectory =
+    /// The directory of the executable file itself
+    let internal executableDirectory =
         let assembly = Assembly.GetExecutingAssembly()
         let uri = UriBuilder(assembly.Location)
         Path.GetDirectoryName(Uri.UnescapeDataString(uri.Path))
-    
-    /// The application configuration.
-    /// Loaded from the config.json file.
-    let appConfig =
-        let rawJson =File.ReadAllText(executableDirectory + "/config.json")
-        JsonSerializer.Deserialize<AppConfig>(rawJson)
-        
-    /// The file path of the file where the app/program data is saved to.
-    let filePath = sprintf $"%s{executableDirectory}/%s{appConfig.DataFilesDirectory}/data.json"
-    
-    let private jsonSerializerOptions =
-        let options = JsonSerializerOptions(WriteIndented = true)
-        JsonFSharpOptions.Default().AddToJsonSerializerOptions(options)
-        options    
         
     /// Attempts to save the the provided AppData record given a file path.
     let saveAppData (filePath: string) (appData: AppData) : Result<unit, Exception> =

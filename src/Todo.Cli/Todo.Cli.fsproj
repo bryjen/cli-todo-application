@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
@@ -7,9 +6,50 @@
         <DefineConstants>Debug</DefineConstants>
     </PropertyGroup>
 
+    <!-- Additional build settings -->
+    <Target Name="CreateDataDirectory" BeforeTargets="Build">
+        <MakeDir Directories="$(OutputPath)\Data" />
+    </Target>
+
+
+    <!-- Project references -->
     <ItemGroup>
+        <ProjectReference Include="..\Spectre.Console.Prompts.Extensions\Spectre.Console.Prompts.Extensions.csproj" />
+        <ProjectReference Include="..\Todo\Todo.fsproj" />
+    </ItemGroup>
+
+    <!-- Non-source files included in build -->
+    <ItemGroup>
+        <Content Include="config.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <!-- Nuget dependencies -->
+    <ItemGroup>
+        <PackageReference Include="Argu" Version="6.1.4" />
+        <PackageReference Include="FSharp.SystemTextJson" Version="1.2.42" />
+    </ItemGroup>
+
+    <!-- Assembly settings -->
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+            <_Parameter1>Todo.Cli.Tests</_Parameter1>
+        </AssemblyAttribute>
+
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+            <_Parameter1>FSharp.Compiler.Interactive.Settings</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
+
+    <!-- Source files -->
+    <ItemGroup>
+        <Compile Include="Utilities\JsonSerializer.fs" />
         <Compile Include="Utilities\Files.fs" />
         <Compile Include="Utilities\Arguments.fs" />
+        <Compile Include="Config.fs" />
+        <Compile Include="Settings.fs" />
+        <Compile Include="CommandTemplate.fs" />
         <Compile Include="Commands\View.Arguments.fs" />
         <Compile Include="Commands\View.fs" />
         <Compile Include="Commands\Create.Arguments.fs" />
@@ -22,35 +62,4 @@
         <Compile Include="Commands\Help.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\Spectre.Console.Prompts.Extensions\Spectre.Console.Prompts.Extensions.csproj" />
-        <ProjectReference Include="..\Todo\Todo.fsproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Content Include="config.json">
-          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
-
-    <ItemGroup>
-      <PackageReference Include="Argu" Version="6.1.4" />
-      <PackageReference Include="FSharp.SystemTextJson" Version="1.2.42" />
-    </ItemGroup>
-    
-    <ItemGroup>
-        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-            <_Parameter1>Todo.Cli.Tests</_Parameter1>
-        </AssemblyAttribute>
-        
-        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-            <_Parameter1>FSharp.Compiler.Interactive.Settings</_Parameter1>
-        </AssemblyAttribute>
-    </ItemGroup>
-    
-    <Target Name="CreateDataDirectory" BeforeTargets="Build">
-        <MakeDir Directories="$(OutputPath)\Data" />
-    </Target>
-
 </Project>

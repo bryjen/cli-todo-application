@@ -1,55 +1,73 @@
 ﻿module Todo.Cli.Program
 
+open System
+open FsToolkit.ErrorHandling
+open Spectre.Console
 open Todo
 open Todo.Cli.Commands
 open Todo.Cli.Utilities
 open Todo.Cli.Utilities.Arguments
 
-#if Debug
-open System
-open Todo.UI.Forms
-#endif
-
 let commandConfigs = [
-    Help.config
-    List.config
-    Create.config
-    Delete.config
-    Edit.config
+    viewCommandTemplate
+    createCommandTemplate
+    deleteCommandTemplate
+    editCommandTemplate
+    helpCommandTemplate
 ]
 
-[<EntryPoint>]
-let rec main argv =
-
-
-#if Debug
-    CreateItemGroupForm.displayForm () |> ignore
-    Console.ReadLine() |> ignore;
-#endif
+/// Attempt to read all of the required files. (configuration, user settings, data, etc.)
+let onStartup () : Result<ApplicationConfiguration * ApplicationSettings * AppData, Exception> =
+    result {
+        let! applicationConfiguration = Config.getApplicationConfiguration ()
+        let! applicationSettings = Settings.getApplicationSettings applicationConfiguration
+        let dataFilePath = applicationConfiguration.getDataFilePath()
+        let! appData = Files.loadAppData dataFilePath
+        return (applicationConfiguration, applicationSettings, appData)
+    }
     
-    
-    //  Get command map 
-    let commandMap = Command.CommandMap commandConfigs 
-    
-    //  Process command using command map
+/// Examines the first token in the program arguments, and finds the respective command template record.
+let processUserArguments argv : Result<CommandTemplate * string array, Exception> =
     match splitToCommandAndArgs argv with
     | None ->
-        printCommandsHelp Array.empty // functions identically if the user entered '... help'
+        Ok (helpCommandTemplate, Array.empty)
+        
     | Some (command, arguments) ->
-        match commandMap.getConfig command with
-        | None -> 
-            printfn "Could not find the indicated command, please try again."
-        | Some config ->
-            processCommand config arguments |> ignore
-    0
+        let commandTemplateOption = List.tryFind (fun commandTemplate -> commandTemplate.CommandName = command) commandConfigs
+        match commandTemplateOption with
+        | Some commandTemplate -> Ok (commandTemplate, arguments)
+        | None -> Error (Exception("Could not find the indicated command, please try again."))
+        
+/// Executes the command specified in the command template
+let processCommand applicationConfiguration applicationSettings appData commandTemplate argv : AppData option =
+    let executeFunc = commandTemplate.InjectData applicationConfiguration applicationSettings appData
     
-and processCommand (commandConfig: Command.Config) (argv: string array) : AppData option =
-    match commandConfig.Function with
+    match executeFunc with
+    | ChangesData func ->
+        let newAppData = func argv
+        Some newAppData
     | NoDataChange func ->
         func argv
         None
-    | ChangesData func ->
-        let newAppData = func argv
-        match Files.saveAppData Files.filePath newAppData with
-        | Error err -> raise err    //  todo: process error once you get a good idea of app flow
-        | Ok _ -> Some newAppData 
+
+[<EntryPoint>]
+let rec main argv =
+    let executionResult = 
+        result {
+            let! (appConfig, appSettings, appData) = onStartup ()
+            let! (commandTemplate, commandArguments) = processUserArguments argv
+            let newAppDataOption = processCommand appConfig appSettings appData commandTemplate commandArguments 
+            
+            match newAppDataOption with
+            | None ->
+                ()
+            | Some newAppData ->
+                return! Files.saveAppData (appConfig.getDataFilePath()) newAppData 
+        }
+        
+    match executionResult with
+    | Ok _ ->
+        0
+    | Error err ->
+        AnsiConsole.WriteException(err)
+        1

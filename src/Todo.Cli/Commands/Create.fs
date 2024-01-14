@@ -6,9 +6,9 @@ open System
 open Argu
 open Spectre.Console
 open FsToolkit.ErrorHandling
-
 open Todo
 open Todo.ItemGroup
+open Todo.Cli
 open Todo.Cli.Utilities
 open Todo.Cli.Commands.Arguments
 
@@ -70,30 +70,35 @@ let private updateAppData (appData: AppData) (parseResults: ParseResults<CreateA
     } 
     
 /// <summary>
-/// Implements the logic for the 'create' command.
+/// Returns a function that implements the underlying logic for the 'create' command. 
 /// </summary>
-/// <param name="argv">List of arguments to be parsed.</param>
-let execute (argv: string array) : AppData =
-    // load the current appdata
-    let appData = match Files.loadAppData Files.filePath with | Ok appData -> appData | Error err -> raise err
+/// <param name="appData">The application data.</param>
+let internal injectCreate 
+    (_: ApplicationConfiguration)
+    (_: ApplicationSettings)
+    (appData: AppData)
+    : CommandFunction =
         
-    // perform the modification
-    let updateResult = 
-        result {
-            let! parseResults = parseArgv argv
-            return! updateAppData appData parseResults
-        }
-        
-    // process the result
-    match updateResult with
-    | Ok newAppData ->
-        AnsiConsole.MarkupLine "Successfully created the specified item group." 
-        newAppData
-    | Error err ->
-        AnsiConsole.MarkupLine (sprintf $"Creation failed with message: %s{err.Message}")
-        appData
+    (* Actual execute function, *)
+    let execute (argv: string array) : AppData =
+        let creationResult = 
+            result {
+                let! parseResults = parseArgv argv
+                return! updateAppData appData parseResults
+            }
+            
+        // process the result
+        match creationResult with
+        | Ok newAppData ->
+            AnsiConsole.MarkupLine "Successfully created the specified item group." 
+            newAppData
+        | Error err ->
+            AnsiConsole.MarkupLine (sprintf $"Creation failed with message: %s{err.Message}")
+            appData
 
-let config : Command.Config =
-    { Command = "create"
-      Help = "Creates an item/item group."
-      Function = CommandFunction.ChangesData execute}
+    CommandFunction.ChangesData execute
+    
+let createCommandTemplate : CommandTemplate =
+    { CommandName = "create"
+      HelpString = "Creates an item/item group/label."
+      InjectData = injectCreate }
