@@ -9,5 +9,5 @@ open Todo.ItemGroup
 /// <remarks>
 /// Does <b>NOT</b> account an item group's <b>sub item groups AND items</b>.
 /// </remarks> 
-let internal formatItemGroup (itemGroup: ItemGroup) : string =
+let formatItemGroup (itemGroup: ItemGroup) : string =
     sprintf "[[%s]]" itemGroup.Name 

@@ -25,14 +25,7 @@
         <Compile Include="Formatters\ItemGroup\Default.fs" />
         <Compile Include="Formatters\Tree.fs" />
         <Compile Include="Formatters\Formats.fs" />
-        <Compile Include="UI\Components\Widgets.fs" />
-        <Compile Include="UI\Components\Item.fs" />
-        <Compile Include="UI\Components\ItemGroup.fs" />
-        <Compile Include="UI\Forms\PathForm.fs" />
-        <Compile Include="UI\Forms\CreateItemGroupForm.fs" />
-        <Compile Include="UI\Forms\LabelSelectionForm.fs" />
         <Compile Include="Data.fs" />
-        <Compile Include="Interactive.fs" />
     </ItemGroup>
 
     <ItemGroup>

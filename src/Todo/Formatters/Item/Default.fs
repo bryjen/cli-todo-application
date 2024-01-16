@@ -9,6 +9,6 @@ open Todo.ItemGroup
 /// <remarks>
 /// Does <b>NOT</b> account an item group's <b>sub item groups AND items</b>.
 /// </remarks> 
-let internal formatItem (item: Item) : string =
+let formatItem (item: Item) : string =
     (* format as default to string *)
     item.ToString()

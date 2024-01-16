@@ -2,5 +2,5 @@
   "DisplayFormat": {
     "Case": "PrettyTree"
   },
-  "ClearConsoleOnView": false
+  "ClearConsoleOnView": true 
 }
