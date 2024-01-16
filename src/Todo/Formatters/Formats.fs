@@ -15,8 +15,8 @@ type DisplayFormat =
         | "prettytree" -> Some DisplayFormat.PrettyTree
         | _ -> None
         
-    /// Formats into a string and then split it into lines. Formatting is based on the provided display format.
-    static member ToLines (displayFormat: DisplayFormat) (itemGroup: ItemGroup) : string list =
+    /// Returns a function that parses an item group into formatted lines. Depends on the type of display format.
+    static member GetToLinesFunc (displayFormat: DisplayFormat) : ItemGroup -> string list =
          match displayFormat with
-         | PlainTree -> Tree.PlainTree.toLines itemGroup 
-         | PrettyTree -> Tree.PrettyTree.toLines itemGroup 
+         | PlainTree -> Tree.PlainTree.toLines  
+         | PrettyTree -> Tree.PrettyTree.toLines  

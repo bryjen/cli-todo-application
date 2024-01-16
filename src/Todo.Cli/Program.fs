@@ -20,7 +20,7 @@ let commandConfigs = [
 let onStartup () : Result<ApplicationConfiguration * ApplicationSettings * AppData, Exception> =
     result {
         let! applicationConfiguration = Config.getApplicationConfiguration ()
-        let! applicationSettings = Settings.getApplicationSettings applicationConfiguration
+        let! applicationSettings = Settings.getApplicationSettings () 
         let dataFilePath = applicationConfiguration.getDataFilePath()
         let! appData = Files.loadAppData dataFilePath
         return (applicationConfiguration, applicationSettings, appData)
@@ -51,7 +51,7 @@ let processCommand applicationConfiguration applicationSettings appData commandT
         None
 
 [<EntryPoint>]
-let rec main argv =
+let main argv =
     let executionResult = 
         result {
             let! (appConfig, appSettings, appData) = onStartup ()
@@ -59,10 +59,8 @@ let rec main argv =
             let newAppDataOption = processCommand appConfig appSettings appData commandTemplate commandArguments 
             
             match newAppDataOption with
-            | None ->
-                ()
-            | Some newAppData ->
-                return! Files.saveAppData (appConfig.getDataFilePath()) newAppData 
+            | Some newAppData -> return! Files.saveAppData (appConfig.getDataFilePath()) newAppData 
+            | None -> ()
         }
         
     match executionResult with

@@ -8,31 +8,10 @@ open Argu
 open FsToolkit.ErrorHandling
 open Todo
 open Todo.Cli
+open Todo.Formatters
 open Todo.ItemGroup
 open Todo.Cli.Utilities
 open Todo.Cli.Commands.Arguments
-
-let private printItemGroups (itemGroups: ItemGroup list) =
-    AnsiConsole.Clear()
-        
-    itemGroups
-    |> List.map (_.ToString()) 
-    |> List.map (fun str -> AnsiConsole.MarkupLine($"%s{str}")) 
-    |> ignore
-    
-// ** remarks **
-// Interactive display <b>CAN</b> change app data. Normally, commands that change data just return updated app data, and
-// the saving is delegated elsewhere. The <b>command</b> itself is configured such that it does not change any data,
-// however this specific function does. To work around this, we get the updated app data, and then explicitly save the
-// new app data here. 
-let private interactiveSession (appData: AppData) : Result<AppData, Exception> =
-    AnsiConsole.Clear()
-    
-    let rootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
-    let converter = Formatters.Tree.PrettyTree.toLines 
-    Interactive.treeInteractive rootItemGroup converter |> ignore
-    
-    Ok appData
 
 let private parseArgv (argv: string array) : Result<ParseResults<ViewArguments>, Exception> =
     let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> Some ConsoleColor.Red)
@@ -44,25 +23,52 @@ let private parseArgv (argv: string array) : Result<ParseResults<ViewArguments>,
     with
         | :? ArguParseException as ex -> Error ex
         | ex -> Error ex
+
+let private printItemGroups (converter: ItemGroup -> string list) (itemGroups: ItemGroup list) =
+    let rootItemGroup = { ItemGroup.Default with SubItemGroups = itemGroups }
+    let linesToPrint = converter rootItemGroup
+    List.map AnsiConsole.MarkupLine linesToPrint |> ignore
+    ()
+    
+let private interactiveSession (converter: ItemGroup -> string list) (appData: AppData) : Result<AppData, Exception> =
+    let rootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
+    Interactive.treeInteractive rootItemGroup converter |> ignore
+    Ok appData
         
-let private display (filePath: string) (appData: AppData) (parseResults: ParseResults<ViewArguments>) : Result<unit, Exception> =
+let private display
+    (applicationConfiguration: ApplicationConfiguration)
+    (applicationSettings: ApplicationSettings)
+    (appData: AppData)
+    (parseResults: ParseResults<ViewArguments>)
+    : Result<unit, Exception> =
+        
+    let displayFormat = applicationSettings.DisplayFormat
+    let converter = DisplayFormat.GetToLinesFunc displayFormat
+    
+    if applicationSettings.ClearConsoleOnView then AnsiConsole.Clear() else ()
+    
     match parseResults.TryGetResult ViewArguments.Interactive with
     | Some _ ->
-        Ok appData
-        |> Result.bind interactiveSession      // result of interactive actions
-        |> Result.bind (Files.saveAppData filePath) 
+        (* Work around since just the 'interactive' session can change data. *)
+        result {
+            let filePath =  applicationConfiguration.getDataFilePath()
+            let! newAppData = interactiveSession converter appData
+            return! Files.saveAppData filePath newAppData
+        } 
     | None ->
-        printItemGroups appData.ItemGroups 
+        printItemGroups converter appData.ItemGroups
         Ok ()
+        
         
 /// <summary>
 /// Returns a function that displays a view of the current todos.
 /// </summary>
 /// <param name="applicationConfiguration">The application configuration.</param>
+/// <param name="applicationSettings">The application settings.</param>
 /// <param name="appData">The application data.</param>
 let internal injectView 
     (applicationConfiguration: ApplicationConfiguration)
-    (_: ApplicationSettings)
+    (applicationSettings: ApplicationSettings)
     (appData: AppData)
     : CommandFunction =
     
@@ -70,8 +76,7 @@ let internal injectView
         let displayResult = 
             result {
                 let! parsedArgs = parseArgv argv
-                let saveFilePath = applicationConfiguration.getDataFilePath()
-                return! display saveFilePath appData parsedArgs
+                return! display applicationConfiguration applicationSettings appData parsedArgs
             }
             
         match displayResult with

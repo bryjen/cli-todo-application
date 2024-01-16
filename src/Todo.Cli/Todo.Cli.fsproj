@@ -6,11 +6,10 @@
         <DefineConstants>Debug</DefineConstants>
     </PropertyGroup>
 
-    <!-- Additional build settings -->
+    <!-- Additional build tasks -->
     <Target Name="CreateDataDirectory" BeforeTargets="Build">
         <MakeDir Directories="$(OutputPath)\Data" />
     </Target>
-
 
     <!-- Project references -->
     <ItemGroup>
@@ -21,6 +20,12 @@
     <!-- Non-source files included in build -->
     <ItemGroup>
         <Content Include="config.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <Content Include="settings.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
     </ItemGroup>
