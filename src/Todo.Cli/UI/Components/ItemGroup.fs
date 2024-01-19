@@ -39,4 +39,5 @@ let viewItemGroup (itemGroup: ItemGroup) : unit =
     |> Table.addRows   [ "Description"; descriptionAsText]         "[grey]No description provided[/]"
     |> Table.addRows   [ "Items"; itemsAsText]                     "[grey]This item group has no items.[/]"
     |> Table.addRows   [ "Sub Item Groups"; subItemGroupsAsText]   "[grey]This item group has no sub item group.[/]"
+    |> Table.addRows   [ "Path"; itemGroup.Path ]                  ""
     |> Table.render 

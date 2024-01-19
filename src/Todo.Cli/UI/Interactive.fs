@@ -17,7 +17,36 @@ open Todo.Cli.UI.Forms.Interactive
 let viewItem = Todo.UI.Components.Item.viewItem
 let viewItemGroup = Todo.UI.Components.ItemGroup.viewItemGroup
 
+/// Handle the selected action in the item menu.
+let handleItemAction 
+    (appData: AppData)
+    (selectedItem: Item)
+    (selectedAction: ItemMenu.SelectedAction)
+    : Result<AppData, Exception> =
+        
+    let rootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
+    let path = selectedItem.Path.Split('/') |> Array.toList
+    
+    match selectedAction with
+    | ItemMenu.Quit ->
+        Ok appData 
+    | ItemMenu.ChangeDescription ->
+        result {
+            // Create a new item with altered description
+            let newDescription = AnsiConsole.Ask<string>("New todo [blue]description[/]:\t")
+            let alteredItem = { selectedItem with Description = Some newDescription }
+            
+            // Delete from existing structure
+            let deleteModify = ItemGroup.RemoveItem selectedItem.Name
+            let! tempRootItemGroup = ItemGroup.Modify rootItemGroup deleteModify path
+            
+            // Re-insert into existing structure
+            let insertModify = ItemGroup.AddItem alteredItem
+            let! newRootItemGroup = ItemGroup.Modify tempRootItemGroup insertModify path
+            return { appData with ItemGroups = newRootItemGroup.SubItemGroups }
+        }
 
+/// Handle the selected action in the item group menu.
 let handleItemMenuAction
     (appData: AppData)
     (selectedItemGroup: ItemGroup)
@@ -58,7 +87,11 @@ let handleItemMenuAction
         }
     | ItemGroupMenu.CreateItem ->
         result {
-            let newItem = CreateItemForm.displayForm ()
+            // Create the new item object
+            let tempItem = CreateItemForm.displayForm ()
+            let newItem = { tempItem with Path = String.Join('/', path) }
+            
+            // Attempt to insert it into existing structure
             let modify = ItemGroup.AddItem newItem
             let! newRootItemGroup = ItemGroup.Modify rootItemGroup modify path
             return { appData with ItemGroups = newRootItemGroup.SubItemGroups }
@@ -85,7 +118,7 @@ let interactive (appData: AppData) : AppData =
         | Item item ->
             viewItem item
             let selectedAction = ItemMenu.promptUserForAction ()
-            Ok appData
+            handleItemAction appData item selectedAction
         | ItemGroup itemGroup ->
             viewItemGroup itemGroup
             let selectedAction = ItemGroupMenu.promptUserForAction ()

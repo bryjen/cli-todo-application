@@ -8,6 +8,7 @@ open Todo.Utilities
 [<AutoOpen>]
 type Item =
     { Name: string
+      Path: string
       Description: string option
       DueDate: DueDate
       Labels: Label list }
@@ -15,6 +16,7 @@ type Item =
     /// An item record instance with default values.
     static member Default =
         { Name = ""
+          Path = ""
           Description = None
           DueDate = DueDate.DateDue DateTime.MinValue 
           Labels = List.empty }

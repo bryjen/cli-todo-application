@@ -21,4 +21,5 @@ let viewItem (item: Item) : unit =
     |> Table.addRows   [ "Description"; descriptionAsText ]   "[grey]No description provided[/]"
     |> Table.addRows   [ "Labels"; labelsAsText ]             "[grey]Item has no labels[/]"
     |> Table.addRows   [ "Due Date"; dueDateAsText ]          ""
+    |> Table.addRows   [ "Path"; item.Path ]          ""
     |> Table.render
