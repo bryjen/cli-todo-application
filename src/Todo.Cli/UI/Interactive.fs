@@ -1,31 +1,99 @@
 ﻿/// Module contains functions related to processing actions in the interactive view.
 module Todo.Interactive
 
+open System
+open FsToolkit.ErrorHandling
 open Spectre.Console
 open Spectre.Console.Prompts.Extensions
+open Todo.Cli.UI.Forms
+open Todo.Utilities
 open Todo.ItemGroup
 open Todo.ItemGroup.Utilities
 open Todo.Formatters.Tree
+open Todo.UI.Forms
+open Todo.Cli.UI.Forms.Interactive
 
 // UI functions that take an item/item group and display it to the console
 let viewItem = Todo.UI.Components.Item.viewItem
 let viewItemGroup = Todo.UI.Components.ItemGroup.viewItemGroup
 
-let treeInteractive
-    (rootItemGroup: ItemGroup)
-    (converter: ItemGroup -> string list)
-    : ItemGroup =
+
+let handleItemMenuAction
+    (appData: AppData)
+    (selectedItemGroup: ItemGroup)
+    (selectedAction: ItemGroupMenu.SelectedAction)
+    : Result<AppData, Exception> =
         
-    let toReturnValues = parseIntoDuList >> (fun lst -> ResizeArray(lst))    
-    let selectionPrompt = TreeSelectionPrompt<ItemGroup, ItemOrItemGroup>(PrettyTree.toTree, toReturnValues, rootItemGroup)
+    let rootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
+    let path = selectedItemGroup.Path.Split('/') |> Array.toList 
+    
+    match selectedAction with
+    | ItemGroupMenu.Quit ->
+        Ok appData 
+    | ItemGroupMenu.CreateNewItemGroup ->
+        result {
+            // Create the new item group object
+            let tempItemGroup = CreateItemGroupForm.displayForm ()
+            let newPath = path @ [ tempItemGroup.Name ] |> List.toArray
+            let newItemGroup = { tempItemGroup with Path = String.Join('/', newPath) }
+            
+            // Attempt to insert it into existing structure
+            let modify = ItemGroup.AddItemGroup newItemGroup
+            let! newRootItemGroup = ItemGroup.Modify rootItemGroup modify path
+            return { appData with ItemGroups = newRootItemGroup.SubItemGroups }
+        }
+    | ItemGroupMenu.DeleteThisItemGroup -> 
+        result {
+            let (toRemove, adjustedPath) = List.splitLast path
+            let modify = ItemGroup.RemoveItemGroup toRemove 
+            let! newRootItemGroup = ItemGroup.Modify rootItemGroup modify adjustedPath 
+            return { appData with ItemGroups = newRootItemGroup.SubItemGroups }
+        }
+    | ItemGroupMenu.DeleteSubItemGroup ->
+        result {
+            let toRemove = AnsiConsole.Ask<string>("What [blue]item group[/] do you want to delete:\t");
+            let modify = ItemGroup.RemoveItemGroup toRemove 
+            let! newRootItemGroup = ItemGroup.Modify rootItemGroup modify path 
+            return { appData with ItemGroups = newRootItemGroup.SubItemGroups }
+        }
+    | ItemGroupMenu.CreateItem ->
+        result {
+            let newItem = CreateItemForm.displayForm ()
+            let modify = ItemGroup.AddItem newItem
+            let! newRootItemGroup = ItemGroup.Modify rootItemGroup modify path
+            return { appData with ItemGroups = newRootItemGroup.SubItemGroups }
+        }
+    | ItemGroupMenu.DeleteItem ->
+        result {
+            let toRemove = AnsiConsole.Ask<string>("What [blue]item[/] do you want to delete:\t");
+            let modify = ItemGroup.RemoveItem toRemove 
+            let! newRootItemGroup = ItemGroup.Modify rootItemGroup modify path 
+            return { appData with ItemGroups = newRootItemGroup.SubItemGroups }
+        }
+
+let interactive (appData: AppData) : AppData =
+    let rootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
+    
+    // Creating the tree selection prompt
+    let itemGroupToReturnValues = parseIntoDuList >> (fun lst -> ResizeArray(lst)) 
+    let selectionPrompt = TreeSelectionPrompt<ItemGroup, ItemOrItemGroup>(PrettyTree.toTree, itemGroupToReturnValues, rootItemGroup)
+    
     let selectedObject = selectionPrompt.Show(AnsiConsole.Console) 
         
-    match selectedObject with
-    | Item item ->
-        viewItem item 
-    | ItemGroup itemGroup ->
-        viewItemGroup itemGroup
-        
-    System.Console.ReadLine() |> ignore 
-        
-    rootItemGroup
+    let actionResult = 
+        match selectedObject with
+        | Item item ->
+            viewItem item
+            let selectedAction = ItemMenu.promptUserForAction ()
+            Ok appData
+        | ItemGroup itemGroup ->
+            viewItemGroup itemGroup
+            let selectedAction = ItemGroupMenu.promptUserForAction ()
+            handleItemMenuAction appData itemGroup selectedAction
+
+    match actionResult with
+    | Ok newAppData ->
+        newAppData
+    | Error err ->
+        printfn "%A" err 
+        appData

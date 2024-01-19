@@ -1,5 +1,5 @@
 ﻿[<RequireQualifiedAccess>]
-module Todo.UI.Forms.CreateItemGroupForm
+module Todo.Cli.UI.Forms.CreateItemForm
 
 open Spectre.Console
 open Todo.ItemGroup
@@ -15,18 +15,18 @@ let private promptForDescription () : string =
     AnsiConsole.Prompt(textPrompt)
     
 /// <summary>
-/// Prompts the user for details about an item group.
+/// Prompts the user for details about an item.
 /// </summary>
 /// <remarks>
-/// The created item group has <b>NO path, and NO items</b>.
+/// The created item has <b>NO path</b>.
 /// </remarks>
-let displayForm () : ItemGroup =
+let displayForm () : Item =
     
     // Just for display
-    generateLine "Creating a [blue]Todo group[/]"
+    generateLine "Creating a [blue]Todo item[/]"
     printfn "\n"
     
     let name = promptForName ()
     let description = promptForDescription ()
     
-    { ItemGroup.Default with Name = name; Description = Some description }
+    { Item.Default with Name = name; Description = Some description }

@@ -49,17 +49,20 @@
 
     <!-- Source files -->
     <ItemGroup>
+        <Compile Include="Utilities\JsonSerializer.fs" />
+        <Compile Include="Utilities\Files.fs" />
+        <Compile Include="Utilities\Arguments.fs" />
+
         <Compile Include="UI\Components\Widgets.fs" />
         <Compile Include="UI\Components\Item.fs" />
         <Compile Include="UI\Components\ItemGroup.fs" />
         <Compile Include="UI\Forms\PathForm.fs" />
+        <Compile Include="UI\Forms\CreateItemForm.fs" />
         <Compile Include="UI\Forms\CreateItemGroupForm.fs" />
         <Compile Include="UI\Forms\LabelSelectionForm.fs" />
+        <Compile Include="UI\Forms\Interactive\ItemGroupMenu.fs" />
+        <Compile Include="UI\Forms\Interactive\ItemMenu.fs" />
         <Compile Include="UI\Interactive.fs" />
-        
-        <Compile Include="Utilities\JsonSerializer.fs" />
-        <Compile Include="Utilities\Files.fs" />
-        <Compile Include="Utilities\Arguments.fs" />
         
         <Compile Include="Config.fs" />
         <Compile Include="Settings.fs" />

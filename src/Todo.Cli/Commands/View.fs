@@ -30,10 +30,9 @@ let private printItemGroups (converter: ItemGroup -> string list) (itemGroups: I
     List.map AnsiConsole.MarkupLine linesToPrint |> ignore
     ()
     
-let private interactiveSession (converter: ItemGroup -> string list) (appData: AppData) : Result<AppData, Exception> =
-    let rootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
-    Interactive.treeInteractive rootItemGroup converter |> ignore
-    Ok appData
+let private interactiveSession (appData: AppData) : Result<AppData, Exception> =
+    let newAppData = Interactive.interactive appData  
+    Ok newAppData 
         
 let private display
     (applicationConfiguration: ApplicationConfiguration)
@@ -52,7 +51,7 @@ let private display
         (* Work around since just the 'interactive' session can change data. *)
         result {
             let filePath =  applicationConfiguration.getDataFilePath()
-            let! newAppData = interactiveSession converter appData
+            let! newAppData = interactiveSession appData
             return! Files.saveAppData filePath newAppData
         } 
     | None ->
