@@ -14,97 +14,13 @@ open Todo.UI.Forms
 open Todo.Cli.UI.Forms.Interactive
 
 // UI functions that take an item/item group and display it to the console
-let viewItem = Todo.UI.Components.Item.viewItem
-let viewItemGroup = Todo.UI.Components.ItemGroup.viewItemGroup
+let private viewItem = Todo.UI.Components.Item.viewItem
+let private viewItemGroup = Todo.UI.Components.ItemGroup.viewItemGroup
 
-/// Handle the selected action in the item menu.
-let handleItemAction 
-    (appData: AppData)
-    (selectedItem: Item)
-    (selectedAction: ItemMenu.SelectedAction)
-    : Result<AppData, Exception> =
-        
-    let rootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
-    let path = selectedItem.Path.Split('/') |> Array.toList
-    
-    match selectedAction with
-    | ItemMenu.Quit ->
-        Ok appData 
-    | ItemMenu.ChangeDescription ->
-        result {
-            // Create a new item with altered description
-            let newDescription = AnsiConsole.Ask<string>("New todo [blue]description[/]:\t")
-            let alteredItem = { selectedItem with Description = Some newDescription }
-            
-            // Delete from existing structure
-            let deleteModify = ItemGroup.RemoveItem selectedItem.Name
-            let! tempRootItemGroup = ItemGroup.Modify rootItemGroup deleteModify path
-            
-            // Re-insert into existing structure
-            let insertModify = ItemGroup.AddItem alteredItem
-            let! newRootItemGroup = ItemGroup.Modify tempRootItemGroup insertModify path
-            return { appData with ItemGroups = newRootItemGroup.SubItemGroups }
-        }
 
-/// Handle the selected action in the item group menu.
-let handleItemMenuAction
-    (appData: AppData)
-    (selectedItemGroup: ItemGroup)
-    (selectedAction: ItemGroupMenu.SelectedAction)
-    : Result<AppData, Exception> =
-        
-    let rootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
-    let path = selectedItemGroup.Path.Split('/') |> Array.toList 
-    
-    match selectedAction with
-    | ItemGroupMenu.Quit ->
-        Ok appData 
-    | ItemGroupMenu.CreateNewItemGroup ->
-        result {
-            // Create the new item group object
-            let tempItemGroup = CreateItemGroupForm.displayForm ()
-            let newPath = path @ [ tempItemGroup.Name ] |> List.toArray
-            let newItemGroup = { tempItemGroup with Path = String.Join('/', newPath) }
-            
-            // Attempt to insert it into existing structure
-            let modify = ItemGroup.AddItemGroup newItemGroup
-            let! newRootItemGroup = ItemGroup.Modify rootItemGroup modify path
-            return { appData with ItemGroups = newRootItemGroup.SubItemGroups }
-        }
-    | ItemGroupMenu.DeleteThisItemGroup -> 
-        result {
-            let (toRemove, adjustedPath) = List.splitLast path
-            let modify = ItemGroup.RemoveItemGroup toRemove 
-            let! newRootItemGroup = ItemGroup.Modify rootItemGroup modify adjustedPath 
-            return { appData with ItemGroups = newRootItemGroup.SubItemGroups }
-        }
-    | ItemGroupMenu.DeleteSubItemGroup ->
-        result {
-            let toRemove = AnsiConsole.Ask<string>("What [blue]item group[/] do you want to delete:\t");
-            let modify = ItemGroup.RemoveItemGroup toRemove 
-            let! newRootItemGroup = ItemGroup.Modify rootItemGroup modify path 
-            return { appData with ItemGroups = newRootItemGroup.SubItemGroups }
-        }
-    | ItemGroupMenu.CreateItem ->
-        result {
-            // Create the new item object
-            let tempItem = CreateItemForm.displayForm ()
-            let newItem = { tempItem with Path = String.Join('/', path) }
-            
-            // Attempt to insert it into existing structure
-            let modify = ItemGroup.AddItem newItem
-            let! newRootItemGroup = ItemGroup.Modify rootItemGroup modify path
-            return { appData with ItemGroups = newRootItemGroup.SubItemGroups }
-        }
-    | ItemGroupMenu.DeleteItem ->
-        result {
-            let toRemove = AnsiConsole.Ask<string>("What [blue]item[/] do you want to delete:\t");
-            let modify = ItemGroup.RemoveItem toRemove 
-            let! newRootItemGroup = ItemGroup.Modify rootItemGroup modify path 
-            return { appData with ItemGroups = newRootItemGroup.SubItemGroups }
-        }
 
-let interactive (appData: AppData) : AppData =
+/// Displays and handles the interactive view.
+let rec interactive (appData: AppData) : AppData =
     let rootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
     
     // Creating the tree selection prompt
@@ -130,3 +46,85 @@ let interactive (appData: AppData) : AppData =
     | Error err ->
         printfn "%A" err 
         appData
+
+/// Handle the selected action in the item group menu.
+and handleItemMenuAction
+    (appData: AppData)
+    (selectedItemGroup: ItemGroup)
+    (selectedAction: ItemGroupMenu.SelectedAction)
+    : Result<AppData, Exception> =
+        
+    let rootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
+    let path = selectedItemGroup.Path.Split('/') |> Array.toList 
+    
+    result {
+        match selectedAction with
+        | ItemGroupMenu.Quit ->
+            return appData
+        | ItemGroupMenu.ReturnToView ->
+            // Recursive call to the main interactive function
+            return interactive appData 
+        | ItemGroupMenu.CreateNewItemGroup ->
+            // Create the new item group object
+            let tempItemGroup = CreateItemGroupForm.displayForm ()
+            let newPath = path @ [ tempItemGroup.Name ] |> List.toArray
+            let newItemGroup = { tempItemGroup with Path = String.Join('/', newPath) }
+            
+            // Attempt to insert it into existing structure
+            let modify = ItemGroup.AddItemGroup newItemGroup
+            let! newRootItemGroup = ItemGroup.Modify rootItemGroup modify path
+            return { appData with ItemGroups = newRootItemGroup.SubItemGroups }
+        | ItemGroupMenu.DeleteThisItemGroup -> 
+            let (toRemove, adjustedPath) = List.splitLast path
+            let modify = ItemGroup.RemoveItemGroup toRemove 
+            let! newRootItemGroup = ItemGroup.Modify rootItemGroup modify adjustedPath 
+            return { appData with ItemGroups = newRootItemGroup.SubItemGroups }
+        | ItemGroupMenu.DeleteSubItemGroup ->
+            let toRemove = AnsiConsole.Ask<string>("What [blue]item group[/] do you want to delete:\t");
+            let modify = ItemGroup.RemoveItemGroup toRemove 
+            let! newRootItemGroup = ItemGroup.Modify rootItemGroup modify path 
+            return { appData with ItemGroups = newRootItemGroup.SubItemGroups }
+        | ItemGroupMenu.CreateItem ->
+            // Create the new item object
+            let tempItem = CreateItemForm.displayForm ()
+            let newItem = { tempItem with Path = String.Join('/', path) }
+            
+            // Attempt to insert it into existing structure
+            let modify = ItemGroup.AddItem newItem
+            let! newRootItemGroup = ItemGroup.Modify rootItemGroup modify path
+            return { appData with ItemGroups = newRootItemGroup.SubItemGroups }
+        | ItemGroupMenu.DeleteItem ->
+            let toRemove = AnsiConsole.Ask<string>("What [blue]item[/] do you want to delete:\t");
+            let modify = ItemGroup.RemoveItem toRemove 
+            let! newRootItemGroup = ItemGroup.Modify rootItemGroup modify path 
+            return { appData with ItemGroups = newRootItemGroup.SubItemGroups }
+    }
+
+/// Handle the selected action in the item menu.
+and handleItemAction 
+    (appData: AppData)
+    (selectedItem: Item)
+    (selectedAction: ItemMenu.SelectedAction)
+    : Result<AppData, Exception> =
+        
+    let rootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
+    let path = selectedItem.Path.Split('/') |> Array.toList
+    
+    result {
+        match selectedAction with
+        | ItemMenu.Quit ->
+            return appData 
+        | ItemMenu.ChangeDescription ->
+            // Create a new item with altered description
+            let newDescription = AnsiConsole.Ask<string>("New todo [blue]description[/]:\t")
+            let alteredItem = { selectedItem with Description = Some newDescription }
+            
+            // Delete from existing structure
+            let deleteModify = ItemGroup.RemoveItem selectedItem.Name
+            let! tempRootItemGroup = ItemGroup.Modify rootItemGroup deleteModify path
+            
+            // Re-insert into existing structure
+            let insertModify = ItemGroup.AddItem alteredItem
+            let! newRootItemGroup = ItemGroup.Modify tempRootItemGroup insertModify path
+            return { appData with ItemGroups = newRootItemGroup.SubItemGroups }
+    }

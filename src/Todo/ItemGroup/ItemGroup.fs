@@ -2,6 +2,7 @@
 
 open System
 open FsToolkit.ErrorHandling
+open Todo.Utilities.List
 
 /// <summary>
 /// An entity that can hold tοdo items. An item group can also hold inner/sub item groups. 
@@ -52,6 +53,49 @@ type ItemGroup =
                 itmGrpString + subItemGroupsString
     
         formatItemGroup this 0
+   
+    // Asserts that an item group has a non-empty name.
+    static member private AssertNonEmptyName (itemGroup: ItemGroup) =
+        let exceptionToReturn = Exception("An item group must have a non-empty name!")
+        assertNonEmptyStringList [itemGroup.Name] exceptionToReturn
+        
+    // Asserts that an item group has sub item groups with non-empty names.
+    static member private AssertNonEmptySubItemGroupNames (itemGroup: ItemGroup) =
+        let exceptionToReturn = Exception("An item group must have a non-empty name!")
+        assertNonEmptyStringList (List.map (_.Name) itemGroup.SubItemGroups) exceptionToReturn
+        
+    // Assert that an item group has items with non-empty names.
+    static member private AssertNonEmptyItemNames (itemGroup: ItemGroup) =
+        let exceptionToReturn = Exception("An item must have a non-empty name!")
+        let getItemName = (fun (item: Item) -> item.Name)
+        assertNonEmptyStringList (List.map getItemName itemGroup.Items) exceptionToReturn
+        
+    // Assert that an item group has sub item groups with unique names.
+    static member private AssertUniqueSubItemGroupNames (itemGroup: ItemGroup) =
+        let subItemGroupNames = List.map (_.Name) itemGroup.SubItemGroups
+        
+        match findFirstDuplicate subItemGroupNames with
+        | Some duplicateName -> Error (Exception($"An item group with the name \"{duplicateName}\" already exists!")) 
+        | None -> Ok () 
+            
+    // Assert that an item group has items with unique names.
+    static member private AssertUniqueItemNames (itemGroup: ItemGroup) =
+        let getItemName = (fun (item: Item) -> item.Name)
+        let itemNames = List.map getItemName itemGroup.Items
+        
+        match findFirstDuplicate itemNames with
+        | Some duplicateName -> Error (Exception($"An item with the name \"{duplicateName}\" already exists!")) 
+        | None -> Ok ()
+        
+    // Asserts that an item group is valid.
+    static member private Validate (itemGroup: ItemGroup) : Result<unit, Exception> =
+        result {
+            do! ItemGroup.AssertNonEmptyName itemGroup 
+            do! ItemGroup.AssertNonEmptySubItemGroupNames itemGroup 
+            do! ItemGroup.AssertNonEmptyItemNames itemGroup 
+            do! ItemGroup.AssertUniqueSubItemGroupNames itemGroup 
+            do! ItemGroup.AssertUniqueItemNames itemGroup 
+        }
         
     // Replaces the base item group's sub item groups with the replacement (If their name matches the IDENTIFIER).
     static member private ReplaceSubItemGroupByIdentifier
@@ -126,9 +170,10 @@ type ItemGroup =
         : Result<ItemGroup, Exception> =
             
         result {
-            let! requiredItemGroup = ItemGroup.Locate itemGroup path  // locate
-            let! newItemGroup = modify requiredItemGroup              // modify
-            return ItemGroup.Update itemGroup path newItemGroup       // update
+            let! requiredItemGroup = ItemGroup.Locate itemGroup path       // locate
+            let! modifiedItemGroup = modify requiredItemGroup              // modify
+            do! ItemGroup.Validate modifiedItemGroup                       // validate changes 
+            return ItemGroup.Update itemGroup path modifiedItemGroup       // update
         }
     
     /// <summary>

@@ -7,6 +7,7 @@ open Todo.Utilities.DiscriminatedUnion
 /// Represents the actions that a user can take, given they selected an item group in the interactive session.
 type SelectedAction =
     | Quit
+    | ReturnToView
     | CreateNewItemGroup
     | DeleteThisItemGroup
     | DeleteSubItemGroup
@@ -19,6 +20,7 @@ type SelectedAction =
         fun selectedAction -> 
             match selectedAction with
             | Quit -> "Quit." 
+            | ReturnToView -> "Return to overall view." 
             | CreateNewItemGroup -> "Create a new todo group." 
             | DeleteThisItemGroup -> "Delete this todo group."
             | DeleteSubItemGroup -> "Delete a sub item group."
