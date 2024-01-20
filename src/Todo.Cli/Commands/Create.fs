@@ -9,7 +9,6 @@ open FsToolkit.ErrorHandling
 open Todo
 open Todo.ItemGroup
 open Todo.Cli
-open Todo.Cli.Utilities
 open Todo.Cli.Commands.Arguments
 
 let private createItemGroup (appData: AppData) (parseResults: ParseResults<CreateItemGroupArguments>) : Result<ItemGroup list, Exception> =

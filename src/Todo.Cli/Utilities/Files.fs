@@ -3,9 +3,8 @@
 open System
 open System.IO
 open System.Reflection
-
-open System.Text
 open System.Text.Json
+open FsToolkit.ErrorHandling
 open Todo
 
 module Files =
@@ -15,25 +14,49 @@ module Files =
         let assembly = Assembly.GetExecutingAssembly()
         let uri = UriBuilder(assembly.Location)
         Path.GetDirectoryName(Uri.UnescapeDataString(uri.Path))
+    
+    // Attempts to create a file at the specified path, if it doesn't exist
+    let private createFileIfNotExists (filePath: string) =
+        if not (File.Exists(filePath)) then
+            try
+                use fileStream = File.Create(filePath)
+                Ok ()
+            with ex ->
+                Error ex
+        else
+            Ok ()
+    
+    // Attempts to asynchronously read the specified file. Returns a 'result' DE. 
+    let private readFileWithErrorHandlingAsync (filePath: string) =
+        async {
+            try
+                let! rawJson = File.ReadAllTextAsync(filePath) |> Async.AwaitTask
+                return Ok rawJson
+            with ex ->
+                return Error ex
+        }
+        
+    // Attempts to asynchronously write the specified file. Returns a 'result' DE.
+    let private writeFileWithErrorHandlingAsync (filePath: string) (contents: string) =
+        async {
+            try
+                File.WriteAllTextAsync(filePath, contents) |> Async.AwaitTask |> ignore
+                return Ok ()
+            with ex ->
+                return Error ex 
+        }
         
     /// Attempts to save the the provided AppData record given a file path.
     let saveAppData (filePath: string) (appData: AppData) : Result<unit, Exception> =
-        try
-            if not (File.Exists(filePath)) then
-                use fileStream = File.Create(filePath)
-                let jsonData = JsonSerializer.Serialize(appData, jsonSerializerOptions)
-                let asBytes = Encoding.ASCII.GetBytes(jsonData)
-                Ok (fileStream.Write(asBytes))
-            else
-                let jsonData = JsonSerializer.Serialize(appData, jsonSerializerOptions)
-                Ok (File.WriteAllText(filePath, jsonData))
-        with
-            | ex -> Error ex
+        result {
+            do! createFileIfNotExists (filePath)
+            let rawJson = JsonSerializer.Serialize(appData, jsonSerializerOptions)
+            return! writeFileWithErrorHandlingAsync filePath rawJson |> Async.RunSynchronously 
+        }
             
     /// Attempts to load an AppData record from the provided file path. 
     let loadAppData (filePath: string) : Result<AppData, Exception> =
-        try
-            let rawJson = File.ReadAllText(filePath)
-            Ok (JsonSerializer.Deserialize<AppData>(rawJson, jsonSerializerOptions))
-        with
-            | ex -> Error ex
+        result {
+            let! rawJson = readFileWithErrorHandlingAsync (filePath) |> Async.RunSynchronously 
+            return JsonSerializer.Deserialize<AppData>(rawJson, jsonSerializerOptions)
+        }
