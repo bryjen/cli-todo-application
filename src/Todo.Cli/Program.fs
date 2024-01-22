@@ -22,7 +22,7 @@ let onStartup () : Result<ApplicationConfiguration * ApplicationSettings * AppDa
         let! applicationConfiguration = Config.getApplicationConfiguration ()
         let! applicationSettings = Settings.getApplicationSettings () 
         let dataFilePath = applicationConfiguration.getDataFilePath()
-        let! appData = Files.loadAppData dataFilePath
+        let! appData = Files.initializeAndLoadAppData dataFilePath
         return (applicationConfiguration, applicationSettings, appData)
     }
     

@@ -60,3 +60,13 @@ module Files =
             let! rawJson = readFileWithErrorHandlingAsync (filePath) |> Async.RunSynchronously 
             return JsonSerializer.Deserialize<AppData>(rawJson, jsonSerializerOptions)
         }
+        
+    /// Attempts to load an AppData record from the provided file path. If the file does not exist, it is generated.
+    let initializeAndLoadAppData (filePath: string) : Result<AppData, Exception> =
+        result {
+            if not (File.Exists(filePath)) then
+                saveAppData filePath AppData.Default |> ignore
+                return AppData.Default
+            else
+                return! loadAppData filePath
+        }
