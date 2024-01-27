@@ -6,36 +6,50 @@
         <DefineConstants>Debug</DefineConstants>
     </PropertyGroup>
 
+    
     <!-- Additional build tasks -->
-    <Target Name="CreateDataDirectory" BeforeTargets="Build">
-        <MakeDir Directories="$(OutputPath)\Data" />
+    <Target Name="CreateDataDirectory" BeforeTargets="BeforeBuild">
+        <MakeDir Directories="$(OutputPath)Data\" />
     </Target>
 
+    <Target Name="CreateDataFileIfNotExists" BeforeTargets="BeforeBuild">
+        <ItemGroup>
+            <SourceFile Include="default_data.json" />
+        </ItemGroup>
+        <Copy SourceFiles="@(SourceFile)" DestinationFiles="$(OutputPath)Data\data.json" Condition="!Exists('$(OutputPath)Data\data.json')" />
+    </Target>
+    
+    
     <!-- Project references -->
     <ItemGroup>
         <ProjectReference Include="..\Spectre.Console.Prompts.Extensions\Spectre.Console.Prompts.Extensions.csproj" />
         <ProjectReference Include="..\Todo\Todo.fsproj" />
     </ItemGroup>
 
+    
     <!-- Non-source files included in build -->
     <ItemGroup>
         <Content Include="config.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
-    </ItemGroup>
-    
-    <ItemGroup>
+        
+        <Content Include="default_data.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+        
         <Content Include="settings.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
     </ItemGroup>
 
+    
     <!-- Nuget dependencies -->
     <ItemGroup>
         <PackageReference Include="Argu" Version="6.1.4" />
         <PackageReference Include="FSharp.SystemTextJson" Version="1.2.42" />
     </ItemGroup>
 
+    
     <!-- Assembly settings -->
     <ItemGroup>
         <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
@@ -47,6 +61,7 @@
         </AssemblyAttribute>
     </ItemGroup>
 
+    
     <!-- Source files -->
     <ItemGroup>
         <Compile Include="Utilities\JsonSerializer.fs" />
