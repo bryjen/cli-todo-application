@@ -68,6 +68,10 @@
         <Compile Include="Utilities\Files.fs" />
         <Compile Include="Utilities\Arguments.fs" />
 
+        <Compile Include="Config.fs" />
+        <Compile Include="Settings.fs" />
+        <Compile Include="CommandTemplate.fs" />
+
         <Compile Include="UI\Components\Widgets.fs" />
         <Compile Include="UI\Components\Item.fs" />
         <Compile Include="UI\Components\ItemGroup.fs" />
@@ -79,9 +83,6 @@
         <Compile Include="UI\Forms\Interactive\ItemMenu.fs" />
         <Compile Include="UI\Interactive.fs" />
         
-        <Compile Include="Config.fs" />
-        <Compile Include="Settings.fs" />
-        <Compile Include="CommandTemplate.fs" />
         <Compile Include="Commands\Arguments\ViewArguments.fs" />
         <Compile Include="Commands\Arguments\CreateArguments.fs" />
         <Compile Include="Commands\Arguments\DeleteArguments.fs" />
@@ -93,6 +94,7 @@
         <Compile Include="Commands\Edit.Item.fs" />
         <Compile Include="Commands\Edit.fs" />
         <Compile Include="Commands\Commands.fs" />
+        
         <Compile Include="Program.fs" />
     </ItemGroup>
 </Project>

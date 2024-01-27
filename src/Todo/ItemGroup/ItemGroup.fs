@@ -21,9 +21,9 @@ type ItemGroup =
     
     /// Default values for a <c>ItemGroup</c> record.
     static member Default =
-        { Name = ""
+        { Name = "DEFAULT"
           Path = ""
-          Description = None
+          Description = Some "The default configuration for an item group." 
           SubItemGroups = List.empty
           Items = List.empty
           Labels = List.empty }

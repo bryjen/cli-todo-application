@@ -19,8 +19,7 @@ let private tryCreateItemGroup
     : Result<AppData, Exception> =
         
     let newItemGroup = CreateItemGroupArguments.ToItemGroup parseResults 
-    let pathOption = parseResults.TryGetResult CreateItemGroupArguments.Path
-    let path = if (pathOption.IsNone) then (List.empty) else (pathOption.Value)
+    let path = Option.defaultValue (List.empty) (parseResults.TryGetResult CreateItemGroupArguments.Path)
     let tempRootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups; Path = String.concat "/" path }
     
     let modify = ItemGroup.AddItemGroup newItemGroup
@@ -34,7 +33,7 @@ let private tryCreateItem
         
     let newItem = CreateItemArguments.ToItem parseResults 
     let tempRootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
-    let path = parseResults.GetResult CreateItemArguments.Path
+    let path = Option.defaultValue (List.empty) (parseResults.TryGetResult CreateItemArguments.Path)
     
     let modify = ItemGroup.AddItem newItem
     let newRootItemGroupResult = ItemGroup.Modify tempRootItemGroup modify path
