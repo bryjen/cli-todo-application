@@ -1,92 +1,61 @@
-﻿[<Microsoft.FSharp.Core.AutoOpen>]
-[<Microsoft.FSharp.Core.RequireQualifiedAccess>]
-module Todo.Cli.Commands.List
+﻿module Todo.Cli.Commands.View
 
-open System
-open Spectre.Console
 open Argu
-open FsToolkit.ErrorHandling
+open Spectre.Console
 open Todo
-open Todo.Cli
 open Todo.Formatters
 open Todo.ItemGroup
+open Todo.Cli
 open Todo.Cli.Utilities
 open Todo.Cli.Commands.Arguments
 
-let private parseArgv (argv: string array) : Result<ParseResults<ViewArguments>, Exception> =
-    let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> Some ConsoleColor.Red)
-    let parser = ArgumentParser.Create<ViewArguments>(errorHandler = errorHandler)
+// Takes the display format specified in the command, or take the default one, if not provided.
+let private getDisplayFormat (appSettings: ApplicationSettings) (viewParseResults: ParseResults<ViewArguments>) =
+    let specifiedDisplayFormatOption =
+        viewParseResults.TryGetResult ViewArguments.Type
+        |> Option.map (_.GetAllResults())
+        |> Option.map List.head
     
-    try
-        let parsedArgs = parser.Parse argv
-        Ok parsedArgs
-    with
-        | :? ArguParseException as ex -> Error ex
-        | ex -> Error ex
-
-let private printItemGroups (converter: ItemGroup -> string list) (itemGroups: ItemGroup list) =
-    let rootItemGroup = { ItemGroup.Default with SubItemGroups = itemGroups }
-    let linesToPrint = converter rootItemGroup
+    match specifiedDisplayFormatOption with
+    | Some displayFormatArg -> DisplayFormatArguments.ToDisplayFormatDU displayFormatArg 
+    | None -> appSettings.DisplayFormat
+    
+let private isInteractive (viewParseResults: ParseResults<ViewArguments>) =
+    match viewParseResults.TryGetResult ViewArguments.Interactive with
+    | Some _ -> true
+    | None -> false
+    
+// Statically displays the app information to the user.
+let private staticDisplay (appData: AppData) (displayFormat: DisplayFormat) =
+    let rootItemGroup = { ItemGroup.Default with SubItemGroups = appData.ItemGroups }
+    let formatter = DisplayFormat.GetToLinesFunc displayFormat
+    let linesToPrint = formatter rootItemGroup
     List.map AnsiConsole.MarkupLine linesToPrint |> ignore
-    ()
     
-let private interactiveSession (appData: AppData) : Result<AppData, Exception> =
-    let newAppData = Interactive.interactive appData  
-    Ok newAppData 
-        
-let private display
-    (applicationConfiguration: ApplicationConfiguration)
-    (applicationSettings: ApplicationSettings)
+// Dynamically and interactively displays the app information to the user.
+let private interactiveDisplay (appConfig: ApplicationConfiguration) (appData: AppData) =
+    let newAppData = Interactive.interactive appData
+    
+    let filePath = appConfig.getDataFilePath()
+    match Files.saveAppData filePath newAppData with
+    | Ok _ ->
+        () 
+    | Error err ->
+        let exceptionMessage = "An error occurred in the interactive view: " + err.Message
+        printfn "%s" exceptionMessage
+
+let internal executeViewCommand
+    (appConfig: ApplicationConfiguration)
+    (appSettings: ApplicationSettings)
     (appData: AppData)
-    (parseResults: ParseResults<ViewArguments>)
-    : Result<unit, Exception> =
+    (viewParseResults: ParseResults<ViewArguments>)
+    : unit =
         
-    let displayFormat = applicationSettings.DisplayFormat
-    let converter = DisplayFormat.GetToLinesFunc displayFormat
+    if appSettings.ClearConsoleOnView then AnsiConsole.Clear() else ()
     
-    if applicationSettings.ClearConsoleOnView then AnsiConsole.Clear() else ()
+    let displayFormat = getDisplayFormat appSettings viewParseResults
     
-    match parseResults.TryGetResult ViewArguments.Interactive with
-    | Some _ ->
-        (* Work around since just the 'interactive' session can change data. *)
-        result {
-            let filePath =  applicationConfiguration.getDataFilePath()
-            let! newAppData = interactiveSession appData
-            return! Files.saveAppData filePath newAppData
-        } 
-    | None ->
-        printItemGroups converter appData.ItemGroups
-        Ok ()
-        
-        
-/// <summary>
-/// Returns a function that displays a view of the current todos.
-/// </summary>
-/// <param name="applicationConfiguration">The application configuration.</param>
-/// <param name="applicationSettings">The application settings.</param>
-/// <param name="appData">The application data.</param>
-let internal injectView 
-    (applicationConfiguration: ApplicationConfiguration)
-    (applicationSettings: ApplicationSettings)
-    (appData: AppData)
-    : CommandFunction =
-    
-    let execute (argv: string array) : unit =
-        let displayResult = 
-            result {
-                let! parsedArgs = parseArgv argv
-                return! display applicationConfiguration applicationSettings appData parsedArgs
-            }
-            
-        match displayResult with
-        | Ok _ ->
-            () 
-        | Error ex ->
-            AnsiConsole.Write($"Error thrown on display: {ex}")
-            
-    CommandFunction.NoDataChange execute
-   
-let viewCommandTemplate : CommandTemplate =
-    { CommandName = "view"
-      HelpString = "Displays a view of the current todos."
-      InjectData = injectView }
+    if isInteractive viewParseResults then
+        interactiveDisplay appConfig appData 
+    else
+        staticDisplay appData displayFormat

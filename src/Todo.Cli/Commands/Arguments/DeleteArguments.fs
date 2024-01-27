@@ -2,9 +2,10 @@
 
 open Argu
 
+[<CliPrefix(CliPrefix.None)>]
 type DeleteArguments =
-    | [<First; CliPrefix(CliPrefix.None)>] Item_Group of ParseResults<DeleteItemGroupArguments>
-    | [<First; CliPrefix(CliPrefix.None)>] Item of ParseResults<DeleteItemArguments>
+    | Item_Group of ParseResults<DeleteItemGroupArguments>
+    | Item of ParseResults<DeleteItemArguments>
 
     interface IArgParserTemplate with
         member this.Usage =

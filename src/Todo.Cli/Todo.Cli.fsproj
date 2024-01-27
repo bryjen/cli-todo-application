@@ -67,18 +67,17 @@
         <Compile Include="Config.fs" />
         <Compile Include="Settings.fs" />
         <Compile Include="CommandTemplate.fs" />
-        
-        <Compile Include="Commands\View.Arguments.fs" />
+        <Compile Include="Commands\Arguments\ViewArguments.fs" />
+        <Compile Include="Commands\Arguments\CreateArguments.fs" />
+        <Compile Include="Commands\Arguments\DeleteArguments.fs" />
+        <Compile Include="Commands\Arguments\EditArguments.fs" />
         <Compile Include="Commands\View.fs" />
-        <Compile Include="Commands\Create.Arguments.fs" />
         <Compile Include="Commands\Create.fs" />
-        <Compile Include="Commands\Delete.Arguments.fs" />
         <Compile Include="Commands\Delete.fs" />
-        <Compile Include="Commands\Edit.Arguments.fs" />
         <Compile Include="Commands\Edit.ItemGroup.fs" />
+        <Compile Include="Commands\Edit.Item.fs" />
         <Compile Include="Commands\Edit.fs" />
-        <Compile Include="Commands\Help.fs" />
-        
+        <Compile Include="Commands\Commands.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 </Project>
