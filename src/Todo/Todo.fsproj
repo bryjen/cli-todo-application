@@ -6,31 +6,21 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="FsToolkit.ErrorHandling" Version="4.13.0" />
+        <Compile Include="Utils\List.fs" />
+        <Compile Include="Utils\AnsiBuilder.fs" />
+        <Compile Include="Models\DueDate.fs" />
+        <Compile Include="Models\Item.fs" />
+        <Compile Include="Models\ItemGroup.fs" />
+        <Compile Include="Models\ItemOrItemGroup.fs" />
+        <Folder Include="Interfaces\" />
+        <Compile Include="Modules\ItemGroup\Validation.fs" />
+        <Compile Include="Modules\ItemGroup\Modification.fs" />
+        <Compile Include="Modules\ItemGroupFormats\Tree.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FsToolkit.ErrorHandling" Version="4.15.1" />
       <PackageReference Include="Spectre.Console" Version="0.48.0" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Compile Include="Console\Console.fs" />
-        <Compile Include="Console\ColorTable.fs" />
-        <Compile Include="Utilities\DiscriminatedUnion.fs" />
-        <Compile Include="Utilities\List.fs" />
-        <Compile Include="Utilities\Date.fs" />
-        <Compile Include="Utilities\String.fs" />
-        <Compile Include="ItemGroup\Label.fs" />
-        <Compile Include="ItemGroup\Item.fs" />
-        <Compile Include="ItemGroup\ItemGroup.fs" />
-        <Compile Include="ItemGroup\ItemOrItemGroup.fs" />
-        <Compile Include="ItemGroup\Utilities.fs" />
-        <Compile Include="Formatters\Item\Default.fs" />
-        <Compile Include="Formatters\ItemGroup\Default.fs" />
-        <Compile Include="Formatters\Tree.fs" />
-        <Compile Include="Formatters\Formats.fs" />
-        <Compile Include="Data.fs" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\Spectre.Console.Prompts.Extensions\Spectre.Console.Prompts.Extensions.csproj" />
     </ItemGroup>
 
 </Project>
